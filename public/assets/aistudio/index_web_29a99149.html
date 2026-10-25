@@ -1,0 +1,3246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TeachOps - MTs SAHID</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b'
+            },
+            appblue: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes floatDown {
+      0% { transform: translate(-50%, -100%); opacity: 0; }
+      100% { transform: translate(-50%, 0); opacity: 1; }
+    }
+    .animate-floating {
+      animation: floatDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-gray-800 antialiased min-h-screen pb-20 select-none">
+
+  <!-- ========================================================================= -->
+  <!-- FLOATING NOTIFICATION SYSTEM (Melayang di Atas Semua Halaman) -->
+  <!-- ========================================================================= -->
+  <div id="floatingToastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none w-[92%] max-w-md transition-all duration-300 hidden">
+    <div id="floatingToastBox" class="pointer-events-auto bg-gray-900/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-gray-700/60 text-xs">
+      <div id="floatingToastIconWrap" class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+        <i id="floatingToastIcon" data-lucide="check-circle" class="w-4 h-4"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p id="floatingToastTitle" class="font-extrabold text-[12px] text-white truncate">Pemberitahuan</p>
+        <p id="floatingToastMessage" class="text-[11px] text-gray-300 line-clamp-2">Deskripsi pesan sistem...</p>
+      </div>
+      <button onclick="dismissFloatingToast()" class="text-gray-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- IN-PAGE CONFIRMATION MODAL (Tanpa Pop-up Browser) -->
+  <!-- ========================================================================= -->
+  <div id="inPageConfirmModal" class="fixed inset-0 z-[9998] hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl text-center space-y-3 transform transition-all scale-95 duration-200">
+      <div id="confirmIconWrap" class="w-12 h-12 mx-auto rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shadow-inner">
+        <i id="confirmIcon" data-lucide="help-circle" class="w-6 h-6"></i>
+      </div>
+      <h3 id="confirmModalTitle" class="text-base font-black text-gray-900">Konfirmasi Tindakan</h3>
+      <p id="confirmModalMessage" class="text-xs text-gray-600 leading-relaxed">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
+      
+      <div class="flex items-center gap-2 pt-2">
+        <button type="button" onclick="closeInPageConfirm(false)" class="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs hover:bg-gray-50 transition">
+          Batal
+        </button>
+        <button type="button" id="btnConfirmAction" onclick="executeInPageConfirm()" class="flex-1 py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-sm transition">
+          Ya, Lanjutkan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 1. SPLASH SCREEN (4 DETIK ANIMASI SMOOTH) -->
+  <!-- ========================================================================= -->
+  <div id="splashScreen" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6 transition-opacity duration-700">
+    <div class="text-center space-y-4 max-w-xs w-full">
+      <div class="relative w-24 h-24 mx-auto flex items-center justify-center">
+        <div class="absolute inset-0 bg-brand-500/20 rounded-3xl animate-ping opacity-75"></div>
+        <div class="relative w-20 h-20 bg-gradient-to-tr from-brand-600 via-emerald-500 to-teal-400 rounded-2xl shadow-xl flex items-center justify-center text-white transform hover:scale-105 transition duration-500">
+          <i data-lucide="layers" class="w-10 h-10"></i>
+        </div>
+      </div>
+      
+      <div class="space-y-1">
+        <h1 class="text-2xl font-black tracking-tight text-gray-900">TeachOps</h1>
+        <p id="splashSchoolName" class="text-xs font-extrabold text-brand-700 tracking-wider uppercase">MTs SAHID</p>
+      </div>
+      
+      <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden mt-6 shadow-inner">
+        <div id="splashProgressBar" class="h-full bg-brand-600 rounded-full w-0 transition-all ease-linear" style="transition-duration: 4000ms;"></div>
+      </div>
+      
+      <p id="splashStatusText" class="text-xs text-gray-500 font-medium">Menghubungkan ke database MTs SAHID...</p>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. LOGIN SCREEN (AMAN - TANPA MENU UBAH URL GAS) -->
+  <!-- ========================================================================= -->
+  <div id="loginScreen" class="hidden min-h-screen flex-col justify-center py-6 px-4 sm:px-6">
+    
+    <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
+      <div class="inline-flex p-3 bg-brand-50 rounded-2xl border border-brand-200 text-brand-600 mb-3 shadow-sm">
+        <i data-lucide="layers" class="w-8 h-8"></i>
+      </div>
+      <h2 class="text-2xl font-black text-gray-900 tracking-tight">TeachOps</h2>
+      <p id="loginSchoolLabel" class="text-xs font-bold text-brand-700 mt-1">MTs SAHID (NPSN: 20277594)</p>
+      <p class="text-[11px] text-gray-400">Teaching Operations</p>
+    </div>
+
+    <div class="mt-5 sm:mx-auto sm:w-full sm:max-w-md space-y-4">
+
+      <!-- Main Login Form -->
+      <div class="bg-white py-6 px-5 sm:px-8 shadow-sm border border-gray-100 rounded-3xl">
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label for="loginPegid" class="block text-xs font-bold text-gray-700 mb-1">ID Guru / PegID</label>
+            <div class="relative">
+              <input id="loginPegid" type="text" required placeholder="PegID 123456" 
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 focus:border-transparent text-xs font-mono uppercase transition">
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                <i data-lucide="user-check" class="w-4 h-4"></i>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label for="loginPassword" class="block text-xs font-bold text-gray-700 mb-1">Password</label>
+            <div class="relative">
+              <input id="loginPassword" type="password" required placeholder="••••••••" 
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 focus:border-transparent text-xs transition">
+              <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                <i data-lucide="lock" class="w-4 h-4"></i>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" id="btnLoginSubmit" 
+            class="w-full py-3.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-extrabold rounded-xl shadow-md shadow-brand-500/20 text-xs flex items-center justify-center gap-2 transition active:scale-[0.99]">
+            <i data-lucide="log-in" class="w-4 h-4"></i>
+            <span>Masuk ke TeachOps</span>
+          </button>
+        </form>
+
+        <div class="mt-4 pt-3 border-t border-gray-100 text-center text-[11px] text-gray-400">
+          <span>Terhubung ke Database <strong>MTs SAHID</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. MAIN APP WRAPPER (RESPONSIF: HP ANDROID & WEB DESKTOP DASHBOARD) -->
+  <!-- ========================================================================= -->
+  <div id="mainApp" class="hidden max-w-md md:max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto min-h-screen bg-[#F8FAFC]">
+    
+    <!-- TOP APP BAR -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 text-white flex items-center justify-center shadow-xs">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h1 class="text-sm font-black tracking-tight text-gray-900 leading-none">TeachOps</h1>
+          <p id="topBarSchoolName" class="text-[10px] text-brand-700 font-extrabold truncate max-w-[170px] sm:max-w-xs">MTs SAHID</p>
+        </div>
+      </div>
+
+      <!-- Realtime Live Sync Pill (Web & Tablet view) -->
+      <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-[10px] font-bold shadow-2xs">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="liveSyncStatusText">Sinkron Realtime MTs</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Desktop User Profile Pill -->
+        <div id="desktopUserPill" class="hidden md:flex items-center gap-2 px-3 py-1 bg-gray-50 border border-gray-200 rounded-xl text-xs">
+          <span class="font-bold text-gray-800" id="desktopUserName">User</span>
+          <span id="desktopUserBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-100 text-brand-800">Role</span>
+        </div>
+
+        <!-- Sync Live Data Button -->
+        <button onclick="refreshDataFromSheets()" title="Tarik Sinkron Data Terbaru" class="p-2 text-gray-500 hover:text-brand-600 rounded-xl hover:bg-gray-100 transition active:scale-95">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Fast Time / Sesi Simulator -->
+        <button onclick="openSimulationModal()" title="Simulasi Jam & Sesi Mengajar" class="px-2.5 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl text-[10px] font-bold flex items-center gap-1 hover:bg-amber-100 transition">
+          <i data-lucide="clock" class="w-3 h-3"></i>
+          <span id="labelSimulasiStatus">Real-Time</span>
+        </button>
+
+        <!-- Logout Action -->
+        <button onclick="confirmLogoutAction()" title="Keluar Akun" class="p-2 text-gray-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- FLOATING TOP ACTIVE SESSION & PIKET BANNER -->
+    <div id="floatingQuickBanner" class="px-4 pt-3 pb-1">
+      <div id="bannerContent" class="hidden p-3 bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-2xl shadow-sm flex items-center justify-between text-xs animate-pulse">
+        <div class="flex items-center gap-2 min-w-0 pr-2">
+          <i data-lucide="bell-ring" class="w-4 h-4 text-emerald-200 shrink-0"></i>
+          <span id="bannerText" class="font-bold truncate">Notifikasi Sesi Aktif</span>
+        </div>
+        <button onclick="switchTab('piket')" class="px-2.5 py-1 bg-white text-emerald-800 rounded-lg font-black text-[10px] shrink-0">
+          Cek
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN BODY SCREENS -->
+    <main class="p-4 space-y-4">
+      
+      <!-- SCREEN 1: HOME / DASHBOARD -->
+      <section id="screen-home" class="space-y-4">
+        
+        <!-- Hero Card (Ruangguru-Style Header) -->
+        <!-- DESKTOP & MOBILE RESPONSIVE DASHBOARD (1 Col di HP, 12 Cols di Web) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          
+          <!-- LEFT COLUMN (lg:col-span-5): Hero, Status Mengajar, Quick Actions -->
+          <div class="lg:col-span-5 space-y-4">
+            
+            <!-- Hero Card (Ruangguru-Style Header) -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-appblue-600 via-blue-600 to-indigo-700 p-5 text-white shadow-lg">
+              <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+              <div class="absolute right-4 top-4 opacity-15 pointer-events-none">
+                <i data-lucide="graduation-cap" class="w-24 h-24"></i>
+              </div>
+
+              <div class="relative z-10 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-black text-lg border border-white/30 text-white shadow-xs">
+                    <span id="userInitialDisplay">U</span>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="text-xs text-blue-100 font-medium">Assalamualaikum,</span>
+                      <span id="userRoleBadge" class="px-2 py-0.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-extrabold uppercase border border-white/30">Guru</span>
+                      <span id="userJabatanBadge" class="hidden px-2 py-0.5 bg-emerald-500/30 backdrop-blur-md rounded-full text-[10px] font-bold text-white border border-emerald-300/40">Waka Kurikulum</span>
+                    </div>
+                    <h2 id="userNameDisplay" class="text-base sm:text-lg font-extrabold tracking-tight mt-0.5">Nama Pengguna</h2>
+                    <p id="userPegidDisplay" class="text-[11px] text-blue-200 font-mono">PEGID: -</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sesi Hari Ini Card Inside Hero -->
+              <div class="mt-4 pt-3 border-t border-white/20 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-1.5">
+                  <i data-lucide="calendar" class="w-3.5 h-3.5 text-blue-200"></i>
+                  <span id="currentDateDisplay" class="font-medium text-blue-100">-</span>
+                </div>
+                <div class="flex items-center gap-1.5 bg-white/15 px-2.5 py-1 rounded-full text-[11px] font-bold">
+                  <span id="activeSesiBadge" class="text-emerald-300">● Sesi 1</span>
+                  <span id="activeJamBadge" class="text-blue-100 font-normal">(08.30 - 09.30)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ALERT KHUSUS GURU PIKET: JIKA ADA GURU IZIN/SAKIT -->
+            <div id="piketUrgentAlert" class="hidden p-4 rounded-3xl bg-amber-500 text-white shadow-md space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 font-black text-xs uppercase tracking-wider">
+                  <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+                  <span>Panggilan Tugas Piket Hari Ini!</span>
+                </div>
+                <span class="px-2 py-0.5 bg-black/20 rounded-full text-[10px] font-mono" id="piketAlertCount">1 Izin</span>
+              </div>
+              <p id="piketAlertTitle" class="text-xs font-bold leading-tight">Ada guru berhalangan hadir. Harap cek daftar kelas yang ditinggalkan untuk klaim tugas inval.</p>
+              <button onclick="switchTab('piket')" class="w-full py-2 bg-white text-amber-900 font-extrabold rounded-xl text-xs hover:bg-amber-50 transition active:scale-[0.99]">
+                Buka & Klaim Inval Sekarang
+              </button>
+            </div>
+
+            <!-- Active Teaching Card / Next Class Alert -->
+            <div id="activeClassBox" class="p-4 rounded-3xl bg-white border border-gray-100 shadow-xs space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <i data-lucide="book-open" class="w-3.5 h-3.5 text-brand-600"></i>
+                  <span>Status Jam Mengajar Anda</span>
+                </h3>
+                <span id="statusMengajarPill" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-600">
+                  Mengecek...
+                </span>
+              </div>
+
+              <div id="activeClassDetails" class="p-3.5 rounded-2xl bg-gray-50 border border-gray-100 text-xs">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+
+            <!-- MENU OPERASIONAL SEKOLAH (GRID RESPONSIF) -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between px-1">
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-wider">Menu Operasional</h3>
+                <span class="text-[10px] text-gray-400">TeachOps MTs SAHID</span>
+              </div>
+              
+              <div class="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-4 gap-2.5 text-center">
+                
+                <!-- 1. Jadwal Mengajar -->
+                <button onclick="switchTab('jadwal')" class="p-3 bg-white hover:bg-gray-50 rounded-2xl border border-gray-100 shadow-xs flex flex-col items-center gap-1.5 transition active:scale-95 group">
+                  <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition">
+                    <i data-lucide="calendar-days" class="w-5 h-5"></i>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-800 leading-tight">Jadwal</span>
+                  <span class="text-[9px] text-gray-400">Pelajaran</span>
+                </button>
+
+                <!-- 2. Izin & Tugas -->
+                <button onclick="switchTab('izin')" class="p-3 bg-white hover:bg-gray-50 rounded-2xl border border-gray-100 shadow-xs flex flex-col items-center gap-1.5 transition active:scale-95 group">
+                  <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-105 transition">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-800 leading-tight">Form Izin</span>
+                  <span class="text-[9px] text-gray-400">Titip Tugas</span>
+                </button>
+
+                <!-- 3. Tugas Piket & Inval -->
+                <button onclick="switchTab('piket')" class="p-3 bg-white hover:bg-gray-50 rounded-2xl border border-gray-100 shadow-xs flex flex-col items-center gap-1.5 transition active:scale-95 relative group">
+                  <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center relative group-hover:scale-105 transition">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    <span id="piketBadgeDot" class="hidden absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-800 leading-tight">Piket Guru</span>
+                  <span class="text-[9px] text-gray-400">Klaim Inval</span>
+                </button>
+
+                <!-- 4. ABSENSI PPMS (KHUSUS WAKA KURIKULUM, KESISWAAN, SARPRAS & PIMPINAN) -->
+                <button id="menuBtnAbsensi" onclick="openAbsensiApp()" class="hidden p-3 bg-white hover:bg-cyan-50/50 rounded-2xl border border-cyan-100 shadow-xs flex flex-col items-center gap-1.5 transition active:scale-95 group">
+                  <div class="w-10 h-10 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center group-hover:scale-105 transition">
+                    <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-800 leading-tight">Absensi</span>
+                  <span class="text-[9px] text-cyan-600 font-bold">PPMS MTs</span>
+                </button>
+
+                <!-- 5. SIPSarpras (MURNI LINK WEB APPS EKSTERNAL) -->
+                <button onclick="openSIPSarprasApp()" class="p-3 bg-white hover:bg-gray-50 rounded-2xl border border-gray-100 shadow-xs flex flex-col items-center gap-1.5 transition active:scale-95 group">
+                  <div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition">
+                    <i data-lucide="external-link" class="w-5 h-5"></i>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-800 leading-tight">SIPSarpras</span>
+                  <span class="text-[9px] text-purple-600 font-bold">Web Apps</span>
+                </button>
+
+                <!-- 6. Pengaturan Waktu Sesi (Admin & Superadmin) -->
+                <button id="menuBtnAturSesi" onclick="openMasterModal('sesi')" class="p-3 bg-white hover:bg-gray-50 rounded-2xl border border-gray-100 shadow-xs flex flex-col items-center gap-1.5 transition active:scale-95 group">
+                  <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center group-hover:scale-105 transition">
+                    <i data-lucide="clock" class="w-5 h-5"></i>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-800 leading-tight">Waktu Sesi</span>
+                  <span class="text-[9px] text-teal-600 font-bold">Atur Jam</span>
+                </button>
+
+                <!-- 7. Data Guru & Users (Admin / Superadmin) -->
+                <button id="menuBtnGuru" onclick="openMasterModal('guru')" class="p-3 bg-white hover:bg-gray-50 rounded-2xl border border-gray-100 shadow-xs flex flex-col items-center gap-1.5 transition active:scale-95 group">
+                  <div class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center group-hover:scale-105 transition">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-800 leading-tight">Data Guru</span>
+                  <span class="text-[9px] text-gray-400">PegID</span>
+                </button>
+
+                <!-- 8. Data Kelas (Superadmin / Admin) -->
+                <button id="menuBtnKelas" onclick="openMasterModal('kelas')" class="p-3 bg-white hover:bg-gray-50 rounded-2xl border border-gray-100 shadow-xs flex flex-col items-center gap-1.5 transition active:scale-95 group">
+                  <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-800 leading-tight">Data Kelas</span>
+                  <span class="text-[9px] text-gray-400">Wali Kelas</span>
+                </button>
+
+                <!-- 9. Data Mapel (Superadmin / Admin) -->
+                <button id="menuBtnMapel" onclick="openMasterModal('mapel')" class="p-3 bg-white hover:bg-gray-50 rounded-2xl border border-gray-100 shadow-xs flex flex-col items-center gap-1.5 transition active:scale-95 group">
+                  <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-105 transition">
+                    <i data-lucide="bookmark" class="w-5 h-5"></i>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-800 leading-tight">Mapel</span>
+                  <span class="text-[9px] text-gray-400">Pelajaran</span>
+                </button>
+
+                <!-- 10. Pengaturan Sekolah (HANYA BISA DIAKSES SUPERADMIN) -->
+                <button id="menuBtnSettings" onclick="openMasterModal('sekolah')" class="p-3 bg-white hover:bg-gray-50 rounded-2xl border border-gray-100 shadow-xs flex flex-col items-center gap-1.5 transition active:scale-95 group">
+                  <div class="w-10 h-10 rounded-2xl bg-gray-100 text-gray-700 flex items-center justify-center group-hover:scale-105 transition">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-800 leading-tight">Pengaturan</span>
+                  <span class="text-[9px] text-gray-500 font-bold">Superadmin</span>
+                </button>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT COLUMN (lg:col-span-7): Real-Time Rekap Guru Izin, Status Inval & Petugas Piket -->
+          <div class="lg:col-span-7 space-y-4">
+            
+            <!-- EXECUTIVE & WAKA QUICK ACTIONS BANNER -->
+            <div id="monitoringQuickBanner" class="p-4 bg-gradient-to-r from-purple-700 to-indigo-800 rounded-3xl text-white shadow-md flex items-center justify-between">
+              <div class="space-y-0.5">
+                <span class="px-2 py-0.5 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-wider">Executive & Waka View</span>
+                <h4 class="font-extrabold text-sm">Monitoring Aktivitas & Rekap Inval</h4>
+                <p class="text-[11px] text-purple-200">Pantau kehadiran guru, kelas kosong, dan progres inval real-time</p>
+              </div>
+              <button onclick="switchTab('monitoring')" class="px-3.5 py-2 bg-white text-purple-900 rounded-xl font-bold text-xs shadow-sm hover:bg-purple-50 transition shrink-0">
+                Buka Panel Rekap
+              </button>
+            </div>
+
+            <!-- ABSENSI PPMS BANNER (Khusus Waka & Pimpinan) -->
+            <div id="absensiQuickBanner" class="hidden p-4 bg-gradient-to-r from-cyan-700 to-blue-800 rounded-3xl text-white shadow-md flex items-center justify-between">
+              <div class="space-y-0.5">
+                <span class="px-2 py-0.5 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-wider">Portal Eksternal PPMS</span>
+                <h4 class="font-extrabold text-sm">Absensi Siswa & Guru MTs SAHID</h4>
+                <p class="text-[11px] text-cyan-200">Akses langsung Dashboard unit MTs PPMS</p>
+              </div>
+              <button onclick="openAbsensiApp()" class="px-3.5 py-2 bg-white text-cyan-900 rounded-xl font-bold text-xs shadow-sm hover:bg-cyan-50 transition shrink-0 flex items-center gap-1.5">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                <span>Buka Absensi</span>
+              </button>
+            </div>
+
+            <!-- REKAPITULASI GURU IZIN & TUGAS HARI INI (REALTIME) -->
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-xs p-4 space-y-3">
+              <div class="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                <div>
+                  <h3 class="font-black text-sm text-gray-900 flex items-center gap-2">
+                    <i data-lucide="calendar-x" class="w-4 h-4 text-amber-500"></i>
+                    <span>Rekap Guru Izin Real-Time</span>
+                  </h3>
+                  <p class="text-[11px] text-gray-500">Daftar izin mengajar & status pendampingan inval hari ini</p>
+                </div>
+                <span id="badgeCountIzinHariIni" class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-bold">0 Izin</span>
+              </div>
+
+              <!-- List Rekap Guru Izin Hari Ini -->
+              <div id="rekapIzinHariIniContainer" class="space-y-2 text-xs">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+
+            <!-- REKAP PETUGAS PIKET HARI INI -->
+            <div class="bg-white rounded-3xl border border-gray-100 shadow-xs p-4 space-y-3">
+              <div class="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                <div>
+                  <h3 class="font-black text-sm text-gray-900 flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                    <span>Petugas Piket Hari Ini</span>
+                  </h3>
+                  <p class="text-[11px] text-gray-500">Guru yang bertugas menjaga ketertiban & mendampingi kelas</p>
+                </div>
+                <span id="badgeCountPiketHariIni" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-bold">0 Petugas</span>
+              </div>
+
+              <!-- List Petugas Piket Hari Ini -->
+              <div id="rekapPiketHariIniContainer" class="space-y-2 text-xs">
+                <!-- Populated via JS -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- SCREEN 2: JADWAL SCREEN (PER SESI & DROPDOWN TARIK DATABASE) -->
+      <section id="screen-jadwal" class="hidden space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-black text-base text-gray-900">Jadwal Mengajar Per Sesi</h3>
+            <p class="text-xs text-gray-500">Daftar kelas & mata pelajaran MTs SAHID</p>
+          </div>
+          
+          <button id="btnTambahJadwal" onclick="openTambahJadwalModal()" class="px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs flex items-center gap-1 shadow-sm transition">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Tambah Sesi</span>
+          </button>
+        </div>
+
+        <!-- Day Filter Tabs -->
+        <div class="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar text-xs">
+          <button onclick="setJadwalDayFilter('Senin')" class="day-filter-btn px-3.5 py-1.5 rounded-xl font-bold bg-brand-600 text-white shadow-xs">Senin</button>
+          <button onclick="setJadwalDayFilter('Selasa')" class="day-filter-btn px-3.5 py-1.5 rounded-xl font-bold bg-white text-gray-600 border border-gray-200">Selasa</button>
+          <button onclick="setJadwalDayFilter('Rabu')" class="day-filter-btn px-3.5 py-1.5 rounded-xl font-bold bg-white text-gray-600 border border-gray-200">Rabu</button>
+          <button onclick="setJadwalDayFilter('Kamis')" class="day-filter-btn px-3.5 py-1.5 rounded-xl font-bold bg-white text-gray-600 border border-gray-200">Kamis</button>
+          <button onclick="setJadwalDayFilter('Jumat')" class="day-filter-btn px-3.5 py-1.5 rounded-xl font-bold bg-white text-gray-600 border border-gray-200">Jumat</button>
+          <button onclick="setJadwalDayFilter('Sabtu')" class="day-filter-btn px-3.5 py-1.5 rounded-xl font-bold bg-white text-gray-600 border border-gray-200">Sabtu</button>
+        </div>
+
+        <!-- Jadwal List Container -->
+        <div id="jadwalListContainer" class="space-y-2.5">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+      <!-- SCREEN 3: PIKET GURU & KLAIM INVAL -->
+      <section id="screen-piket" class="hidden space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-black text-base text-gray-900">Petugas Piket & Inval</h3>
+            <p class="text-xs text-gray-500">Pendampingan kelas guru yang berhalangan</p>
+          </div>
+
+          <button id="btnTambahPiket" onclick="openTambahPiketModal()" class="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs flex items-center gap-1 shadow-sm transition">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+            <span>Atur Petugas</span>
+          </button>
+        </div>
+
+        <!-- Info Card Petugas Piket Hari Ini (FIX DEFINED GURU & SESI) -->
+        <div id="piketStatusCard" class="p-4 rounded-3xl bg-white border border-gray-100 shadow-xs space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-gray-500 uppercase">Jadwal Piket Hari Ini</span>
+            <span id="piketBadgeStatus" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-600">Bukan Petugas</span>
+          </div>
+          <div id="piketListHariIni" class="text-xs text-gray-800 space-y-1">
+            <!-- Populated cleanly -->
+          </div>
+        </div>
+
+        <!-- Daftar Kelas Kosong / Izin Hari Ini untuk di-KLAIM -->
+        <div class="space-y-2">
+          <h4 class="font-extrabold text-xs text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="inbox" class="w-4 h-4 text-brand-600"></i>
+            <span>Daftar Izin & Penugasan Inval Hari Ini</span>
+          </h4>
+
+          <div id="invalTasksContainer" class="space-y-2.5">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: FORM IZIN / SAKIT GURU -->
+      <section id="screen-izin" class="hidden space-y-4">
+        <div>
+          <h3 class="font-black text-base text-gray-900">Form Izin & Penitipan Tugas</h3>
+          <p class="text-xs text-gray-500">Laporkan izin/sakit dan berikan tugas siswa secara terpusat</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-xs">
+          <form id="formIzinTeachOps" onsubmit="handleKirimIzin(event)" class="space-y-3.5 text-xs">
+            
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">Tanggal Izin</label>
+                <input type="date" id="inputIzinTanggal" onchange="handleIzinTanggalChanged(this.value)" required class="w-full border border-gray-300 rounded-xl p-2.5 text-xs focus:ring-brand-500">
+              </div>
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">Alasan</label>
+                <select id="inputIzinAlasan" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs bg-white focus:ring-brand-500">
+                  <option value="Sakit">Sakit</option>
+                  <option value="Izin Dinas / Pelatihan">Izin Dinas / Pelatihan</option>
+                  <option value="Izin Pribadi / Keluarga">Izin Pribadi / Keluarga</option>
+                  <option value="Cuti">Cuti</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pilih Kelas (Ditarik langsung dari Data Kelas) -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">Kelas yang Ditinggalkan</label>
+                <select id="inputIzinKelas" required class="w-full border border-gray-300 rounded-xl p-2.5 text-xs bg-white focus:ring-brand-500">
+                  <!-- Populated from liveData.kelas -->
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-bold text-gray-700 mb-1">Sesi Mengajar</label>
+                <select id="inputIzinSesi" class="w-full border border-gray-300 rounded-xl p-2.5 text-xs bg-white focus:ring-brand-500">
+                  <option value="Sesi 1 (08.30 - 09.30)">Sesi 1 (08.30 - 09.30)</option>
+                  <option value="Sesi 2 (10.00 - 11.00)">Sesi 2 (10.00 - 11.00)</option>
+                  <option value="Sesi 3 (11.00 - 12.00)">Sesi 3 (11.00 - 12.00)</option>
+                  <option value="Sesi 4 (13.30 - 15.00)">Sesi 4 (13.30 - 15.00)</option>
+                  <option value="Sepanjang Hari">Sepanjang Hari (08.30 - 15.00)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pilih Mapel (Ditarik dari Data Mapel) -->
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Mata Pelajaran</label>
+              <select id="inputIzinMapel" required class="w-full border border-gray-300 rounded-xl p-2.5 text-xs bg-white focus:ring-brand-500">
+                <!-- Populated from liveData.mapel -->
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-bold text-gray-700 mb-1">Instruksi Tugas Siswa</label>
+              <textarea id="inputIzinDeskripsi" required rows="3" placeholder="Tuliskan tugas siswa untuk dikerjakan selama jam pelajaran..." class="w-full border border-gray-300 rounded-xl p-2.5 text-xs focus:ring-brand-500"></textarea>
+            </div>
+
+            <div class="flex justify-end pt-2">
+              <button type="submit" id="btnKirimIzin" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow-sm flex items-center gap-1.5 transition">
+                <i data-lucide="send" class="w-4 h-4"></i>
+                <span>Kirim Izin</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Riwayat Izin Saya -->
+        <div class="space-y-2">
+          <h4 class="font-extrabold text-xs text-gray-700 uppercase tracking-wider">Riwayat Pengajuan Izin Saya</h4>
+          <div id="riwayatIzinContainer" class="space-y-2 text-xs">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: EXECUTIVE MONITORING (HANYA KEPALA, ADMIN & SUPERADMIN) -->
+      <section id="screen-monitoring" class="hidden space-y-4">
+        <div class="bg-gradient-to-br from-purple-900 to-indigo-900 text-white p-5 rounded-3xl shadow-lg space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="space-y-0.5">
+              <h3 class="text-base font-black flex items-center gap-2">
+                <i data-lucide="activity" class="w-5 h-5 text-purple-400"></i>
+                <span>Executive Monitoring</span>
+              </h3>
+              <p class="text-xs text-purple-200">Aktivitas kehadiran & inval real-time MTs SAHID</p>
+            </div>
+            <span class="px-2.5 py-1 bg-white/20 text-white font-extrabold text-[11px] rounded-full border border-white/30">Live View</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-purple-700/50 text-center">
+            <div class="p-2.5 bg-white/10 rounded-2xl backdrop-blur-xs">
+              <span class="block text-[10px] text-purple-200 uppercase font-bold">Total Izin</span>
+              <span id="monStatIzin" class="text-lg font-black text-white">0</span>
+            </div>
+            <div class="p-2.5 bg-white/10 rounded-2xl backdrop-blur-xs">
+              <span class="block text-[10px] text-purple-200 uppercase font-bold">Perlu Inval</span>
+              <span id="monStatPending" class="text-lg font-black text-amber-300">0</span>
+            </div>
+            <div class="p-2.5 bg-white/10 rounded-2xl backdrop-blur-xs">
+              <span class="block text-[10px] text-purple-200 uppercase font-bold">Selesai Inval</span>
+              <span id="monStatInval" class="text-lg font-black text-emerald-300">0 Kelas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monitoring Feed List -->
+        <div class="space-y-2">
+          <h4 class="font-extrabold text-xs text-gray-700 uppercase tracking-wider">Log Riwayat Izin & Bukti Foto Drive</h4>
+          <div id="monLogContainer" class="space-y-2.5 text-xs">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- BOTTOM NAVIGATION (Role Aware & Responsif) -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md md:max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto bg-white/95 backdrop-blur-md border-t border-gray-100 px-3 py-2 flex items-center justify-around z-40 text-[10px] font-bold shadow-lg">
+      <button onclick="switchTab('home')" id="bnav-home" class="bnav-item flex flex-col items-center justify-center text-brand-600 transition">
+        <i data-lucide="home" class="w-5 h-5 mb-0.5"></i>
+        <span>Beranda</span>
+      </button>
+      <button onclick="switchTab('jadwal')" id="bnav-jadwal" class="bnav-item flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition">
+        <i data-lucide="calendar" class="w-5 h-5 mb-0.5"></i>
+        <span>Jadwal</span>
+      </button>
+      <button onclick="switchTab('piket')" id="bnav-piket" class="bnav-item flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition">
+        <i data-lucide="shield" class="w-5 h-5 mb-0.5"></i>
+        <span>Piket</span>
+      </button>
+      <!-- Absensi PPMS: Khusus Waka Kurikulum, Waka Kesiswaan, Waka Sarpras, Admin, Kepala, Superadmin -->
+      <button onclick="openAbsensiApp()" id="bnav-absensi" class="bnav-item hidden flex flex-col items-center justify-center text-gray-400 hover:text-cyan-600 transition">
+        <i data-lucide="clipboard-check" class="w-5 h-5 mb-0.5"></i>
+        <span>Absensi</span>
+      </button>
+      <!-- Monitoring: Hanya Kepala, Admin, Superadmin -->
+      <button onclick="switchTab('monitoring')" id="bnav-monitoring" class="bnav-item hidden flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition">
+        <i data-lucide="bar-chart-3" class="w-5 h-5 mb-0.5"></i>
+        <span>Monitoring</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 4. MODALS & FORMS -->
+  <!-- ========================================================================= -->
+
+  <!-- MODAL: MASTER DATA (GURU, KELAS, MAPEL, PENGATURAN SEKOLAH) -->
+  <div id="modalMaster" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md md:max-w-2xl lg:max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+        <h4 id="modalMasterTitle" class="font-black text-sm text-gray-900 flex items-center gap-2">
+          <i data-lucide="database" class="w-4 h-4 text-brand-600"></i>
+          <span>Kelola Data Master</span>
+        </h4>
+        <button onclick="closeMasterModal()" class="text-gray-400 hover:text-gray-600 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="modalMasterBody" class="p-4 overflow-y-auto custom-scrollbar flex-1 text-xs space-y-3">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ATUR JADWAL MENGAJAR (TARIK DATA DARI DATABASE) -->
+  <div id="modalTambahJadwal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl text-xs space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+        <h4 class="font-bold text-sm text-gray-900">Tambah Sesi Jadwal Mengajar</h4>
+        <button onclick="closeTambahJadwalModal()" class="text-gray-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveNewJadwal(event)" class="space-y-2.5">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-gray-700 mb-0.5">Hari</label>
+            <select id="newJadwalHari" onchange="handleJadwalHariChanged(this.value)" class="w-full border p-2 rounded-xl bg-white">
+              <option value="Senin">Senin</option>
+              <option value="Selasa">Selasa</option>
+              <option value="Rabu">Rabu</option>
+              <option value="Kamis">Kamis</option>
+              <option value="Jumat">Jumat</option>
+              <option value="Sabtu">Sabtu</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-gray-700 mb-0.5">Sesi</label>
+            <select id="newJadwalSesi" onchange="autoFillJamFromSesi(this.value)" class="w-full border p-2 rounded-xl bg-white">
+              <option value="Sesi 1">Sesi 1 (08.30 - 09.30)</option>
+              <option value="Sesi 2">Sesi 2 (10.00 - 11.00)</option>
+              <option value="Sesi 3">Sesi 3 (11.00 - 12.00)</option>
+              <option value="Sesi 4">Sesi 4 (13.30 - 15.00)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-0.5">Jam Mengajar</label>
+          <input type="text" id="newJadwalJam" value="08.30 - 09.30" required class="w-full border p-2 rounded-xl bg-gray-50 font-mono">
+        </div>
+
+        <!-- Dropdown Tarik Kelas dari Database -->
+        <div>
+          <label class="block font-bold text-gray-700 mb-0.5">Pilih Kelas</label>
+          <select id="newJadwalKelasSelect" required class="w-full border p-2 rounded-xl bg-white">
+            <!-- Populated via JS from liveData.kelas -->
+          </select>
+        </div>
+
+        <!-- Dropdown Tarik Mapel dari Database -->
+        <div>
+          <label class="block font-bold text-gray-700 mb-0.5">Pilih Mata Pelajaran</label>
+          <select id="newJadwalMapelSelect" required class="w-full border p-2 rounded-xl bg-white">
+            <!-- Populated via JS from liveData.mapel -->
+          </select>
+        </div>
+
+        <!-- Dropdown Tarik Guru Pengampu dari Database -->
+        <div>
+          <label class="block font-bold text-gray-700 mb-0.5">Pilih Guru Pengampu</label>
+          <select id="newJadwalGuruSelect" required class="w-full border p-2 rounded-xl bg-white font-mono">
+            <!-- Populated via JS from liveData.users -->
+          </select>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeTambahJadwalModal()" class="px-3.5 py-2 border rounded-xl font-bold text-gray-600">Batal</button>
+          <button type="submit" id="btnSaveJadwalSubmit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl">Simpan Sesi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ATUR PETUGAS PIKET (TARIK GURU DARI DATABASE) -->
+  <div id="modalTambahPiket" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl text-xs space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+        <h4 class="font-bold text-sm text-gray-900">Atur Penugasan Guru Piket</h4>
+        <button onclick="closeTambahPiketModal()" class="text-gray-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveNewPiket(event)" class="space-y-3">
+        <div>
+          <label class="block font-bold text-gray-700 mb-0.5">Hari Piket</label>
+          <select id="newPiketHari" onchange="handlePiketHariChanged(this.value)" class="w-full border p-2 rounded-xl bg-white">
+            <option value="Senin">Senin</option>
+            <option value="Selasa">Selasa</option>
+            <option value="Rabu">Rabu</option>
+            <option value="Kamis">Kamis</option>
+            <option value="Jumat">Jumat</option>
+            <option value="Sabtu">Sabtu</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-0.5">Sesi Piket</label>
+          <select id="newPiketSesi" class="w-full border p-2 rounded-xl bg-white">
+            <option value="Sesi 1 (08.30 - 09.30)">Sesi 1 (08.30 - 09.30)</option>
+            <option value="Sesi 2 (10.00 - 11.00)">Sesi 2 (10.00 - 11.00)</option>
+            <option value="Sesi 3 (11.00 - 12.00)">Sesi 3 (11.00 - 12.00)</option>
+            <option value="Sesi 4 (13.30 - 15.00)">Sesi 4 (13.30 - 15.00)</option>
+            <option value="Semua Sesi">Semua Sesi (08.30 - 15.00)</option>
+          </select>
+        </div>
+
+        <!-- Dropdown Tarik Guru dari Database -->
+        <div>
+          <label class="block font-bold text-gray-700 mb-0.5">Pilih Guru Piket</label>
+          <select id="newPiketGuruSelect" required class="w-full border p-2 rounded-xl bg-white font-mono">
+            <!-- Populated from liveData.users -->
+          </select>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeTambahPiketModal()" class="px-3.5 py-2 border rounded-xl font-bold text-gray-600">Batal</button>
+          <button type="submit" id="btnSavePiketSubmit" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl">Simpan Piket</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: KLAIM BUKTI INVAL PIKET DENGAN UPLOAD FOTO GOOGLE DRIVE (KOMPRESI < 300KB) -->
+  <div id="modalBuktiPiket" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl text-xs space-y-3">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div>
+          <h4 class="font-bold text-sm text-gray-900">Kirim Bukti Pelaksanaan Inval</h4>
+          <p class="text-[11px] text-gray-400">Unggah foto dokumentasi langsung ke Google Drive MTs SAHID</p>
+        </div>
+        <button onclick="closeModalBuktiPiket()" class="text-gray-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+
+      <form id="formBuktiInvalModal" onsubmit="submitBuktiInvalAction(event)" class="space-y-3">
+        <input type="hidden" id="buktiTargetIzinId">
+        
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Kelas & Tugas Siswa</label>
+          <p id="buktiTargetLabel" class="bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-gray-700 font-medium"></p>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Catatan / Laporan Pendampingan Inval</label>
+          <textarea id="buktiInputCatatan" required rows="2" placeholder="Contoh: Siswa telah didampingi mengerjakan tugas di kelas, suasana tertib dan kondusif." class="w-full border border-gray-300 rounded-xl p-2.5 text-xs focus:ring-brand-500"></textarea>
+        </div>
+
+        <!-- Upload Foto Bukti ke Google Drive -->
+        <div>
+          <label class="block font-bold text-gray-700 mb-1 flex items-center justify-between">
+            <span>Foto Bukti Fisik / Dokumentasi Kelas:</span>
+            <span class="text-[10px] text-brand-700 bg-brand-50 px-2 py-0.5 rounded font-mono" id="labelFotoUkuran">Maks 300 KB</span>
+          </label>
+          
+          <input type="file" id="buktiInputFoto" accept="image/*" capture="environment" onchange="handleFotoInvalSelected(event)" class="w-full border border-gray-300 rounded-xl p-2 text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
+          
+          <div id="fotoPreviewContainer" class="hidden mt-2 p-2 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-3">
+            <img id="fotoPreviewThumb" src="" alt="Thumbnail" class="w-14 h-14 object-cover rounded-lg border border-gray-300 shrink-0">
+            <div class="flex-1 min-w-0">
+              <p id="fotoPreviewInfo" class="font-bold text-[11px] text-gray-800 truncate">foto_inval.jpg</p>
+              <p id="fotoPreviewSizeInfo" class="text-[10px] text-emerald-600 font-mono">Terkonversi: 120 KB (Siap upload ke Drive)</p>
+            </div>
+            <button type="button" onclick="clearFotoInvalSelected()" class="text-red-500 p-1 hover:text-red-700">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModalBuktiPiket()" class="px-3.5 py-2 border rounded-xl font-bold text-gray-600">Batal</button>
+          <button type="submit" id="btnSubmitBuktiInval" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-sm">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+            <span>Simpan & Upload Drive</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PREVIEW FOTO GOOGLE DRIVE (Untuk Kepala & Monitoring) -->
+  <div id="modalViewFoto" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-4 shadow-2xl text-xs space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+        <h4 class="font-bold text-sm text-gray-900">Dokumentasi Inval Google Drive</h4>
+        <button onclick="closeModalViewFoto()" class="text-gray-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="rounded-xl overflow-hidden bg-black flex items-center justify-center min-h-[220px]">
+        <img id="viewFotoImage" src="" alt="Bukti Foto" class="max-h-72 w-auto object-contain">
+      </div>
+      <p id="viewFotoCatatan" class="text-gray-700 bg-gray-50 p-2.5 rounded-xl border border-gray-200 text-[11px]"></p>
+      <div class="flex justify-end gap-2">
+        <a id="viewFotoDriveLink" href="#" target="_blank" class="px-4 py-2 bg-brand-600 text-white rounded-xl font-bold flex items-center gap-1.5">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          <span>Buka di Google Drive</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SIMULASI WAKTU SESI -->
+  <div id="modalSimulasi" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+        <h4 class="font-bold text-sm text-gray-900 flex items-center gap-1.5">
+          <i data-lucide="clock" class="w-4 h-4 text-brand-600"></i>
+          <span>Simulasi Jam / Sesi Mengajar</span>
+        </h4>
+        <button onclick="closeSimulationModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+      <div class="mt-3 space-y-3 text-xs">
+        <p class="text-gray-500">Pilih sesi aktif untuk menguji notifikasi jadwal & piket:</p>
+        <div class="grid grid-cols-2 gap-2" id="simulasiButtonsContainer">
+          <!-- Dynamically generated -->
+        </div>
+        <button onclick="setSimulasiSesi('REALTIME')" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl transition">
+          Gunakan Jam Real-Time Sistem
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 5. JAVASCRIPT LOGIC ENGINE -->
+  <!-- ========================================================================= -->
+  <script>
+    // Master Standar Sesi Mengajar MTs SAHID Sesuai Ketentuan Terbaru:
+    // 1. Senin - Kamis dan Sabtu
+    const MASTER_SESI_REGULER = [
+      { id: 'Sesi 1', jam: '08.30 - 09.30', startMin: 8 * 60 + 30, endMin: 9 * 60 + 30, isBreak: false },
+      { id: 'Istirahat 1', jam: '09.30 - 10.00', startMin: 9 * 60 + 30, endMin: 10 * 60 + 0, isBreak: true },
+      { id: 'Sesi 2', jam: '10.00 - 11.00', startMin: 10 * 60 + 0, endMin: 11 * 60 + 0, isBreak: false },
+      { id: 'Sesi 3', jam: '11.00 - 12.00', startMin: 11 * 60 + 0, endMin: 12 * 60 + 0, isBreak: false },
+      { id: 'Istirahat 2', jam: '12.00 - 13.30', startMin: 12 * 60 + 0, endMin: 13 * 60 + 30, isBreak: true },
+      { id: 'Sesi 4', jam: '13.30 - 15.00', startMin: 13 * 60 + 30, endMin: 15 * 60 + 0, isBreak: false }
+    ];
+
+    // 2. Jumat
+    const MASTER_SESI_JUMAT = [
+      { id: 'Sesi 1', jam: '08.00 - 09.00', startMin: 8 * 60 + 0, endMin: 9 * 60 + 0, isBreak: false },
+      { id: 'Istirahat 1', jam: '09.00 - 09.30', startMin: 9 * 60 + 0, endMin: 9 * 60 + 30, isBreak: true },
+      { id: 'Sesi 2', jam: '09.30 - 10.30', startMin: 9 * 60 + 30, endMin: 10 * 60 + 30, isBreak: false },
+      { id: 'Sesi 3', jam: '10.30 - 11.30', startMin: 10 * 60 + 30, endMin: 11 * 60 + 30, isBreak: false },
+      { id: 'Istirahat 2', jam: '11.30 - 13.30', startMin: 11 * 60 + 30, endMin: 13 * 60 + 30, isBreak: true },
+      { id: 'Sesi 4', jam: '13.30 - 15.00', startMin: 13 * 60 + 30, endMin: 15 * 60 + 0, isBreak: false }
+    ];
+
+    function getMasterSesi(hari) {
+      const h = String(hari || getTodayDayName()).toLowerCase().trim();
+      return (h === 'jumat') ? MASTER_SESI_JUMAT : MASTER_SESI_REGULER;
+    }
+
+    function getTeachingSessionsOnly(hari) {
+      return getMasterSesi(hari).filter(s => !s.isBreak);
+    }
+
+    // Helper Normalisasi Tanggal (Mengatasi GMT/UTC vs WIB ISOString)
+    function normalizeDateStr(val) {
+      if (!val) return '';
+      if (val instanceof Date) {
+        const y = val.getFullYear();
+        const m = String(val.getMonth() + 1).padStart(2, '0');
+        const d = String(val.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+      const s = String(val).trim();
+      if (s.includes('T')) {
+        try {
+          const d = new Date(s);
+          if (!isNaN(d.getTime())) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+          }
+        } catch (e) {}
+      }
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
+        const parts = s.split('/');
+        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+      return s.substring(0, 10);
+    }
+
+    // Format Tanggal Tampilan Ramah Pengguna
+    function formatDisplayDate(val) {
+      if (!val) return '-';
+      const ymd = normalizeDateStr(val);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+        const parts = ymd.split('-');
+        const y = parts[0];
+        const m = parseInt(parts[1], 10);
+        const d = parseInt(parts[2], 10);
+        const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        return `${d} ${months[m] || parts[1]} ${y}`;
+      }
+      return String(val);
+    }
+
+    // Data Real MTs SAHID Sesuai Spreadsheet
+    const INITIAL_SEKOLAH = {
+      NamaSekolah: 'MTs SAHID',
+      NPSN: '20277594',
+      Semester: 'Ganjil 2026/2027',
+      KepalaSekolah: 'R. Jaja Jumhana, S.Pd',
+      Alamat: 'Jl. Kh Abdul Hamid Km 6'
+    };
+
+    // Data Pengguna Real dari Sheet Users MTs SAHID (Termasuk Waka Kurikulum & Kepala)
+    const INITIAL_USERS = [
+      { PegID: '123456', Nama: 'Muhamad Yunus', Role: 'superadmin', Jabatan: 'Super Admin', Pass: 'yunus1*' },
+      { PegID: '121232010131', Nama: 'MTs SAHID', Role: 'admin', Jabatan: 'admin', Pass: 'admin123' },
+      { PegID: '20277594', Nama: 'R. Jaja Jumhana', Role: 'kepala', Jabatan: 'Kepala Madrasah', Pass: 'kepala123' },
+      { PegID: '1234567', Nama: 'Abdurrouf Dimyati', Role: 'guru', Jabatan: 'Waka Kurikulum', Pass: 'waka123' },
+      { PegID: '7654321', Nama: 'Ahmad Fulan', Role: 'guru', Jabatan: 'Aqidah Akhlak', Pass: 'fulan1' }
+    ];
+
+    // State Aplikasi
+    let currentUser = null;
+    let liveData = {
+      sekolah: { ...INITIAL_SEKOLAH },
+      users: [ ...INITIAL_USERS ],
+      kelas: [],
+      mapel: [],
+      jadwalMapel: [],
+      jadwalPiket: [],
+      izinTugas: []
+    };
+    let simulatedSesiId = 'REALTIME';
+    let currentJadwalFilterDay = 'Senin';
+    let pendingConfirmAction = null;
+    let compressedFotoBase64 = null;
+    let compressedFotoName = null;
+    let lastSyncTimestamp = null;
+
+    // Helper URL Google Apps Script (Hanya diakses & diubah oleh Superadmin)
+    function getGasUrl() {
+      return localStorage.getItem('teachops_gas_url') || '';
+    }
+
+    function setGasUrl(url) {
+      localStorage.setItem('teachops_gas_url', (url || '').trim());
+    }
+
+    function safeCreateIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try {
+          window.lucide.createIcons();
+        } catch (e) {
+          console.warn('Lucide icon error:', e);
+        }
+      }
+    }
+
+    // =========================================================================
+    // HELPER LINK EKSTERNAL (Mendukung Android WebView & Web Browser)
+    // =========================================================================
+    function openExternalLink(url) {
+      if (!url) return;
+      try {
+        if (window.AndroidApp && typeof window.AndroidApp.openExternal === 'function') {
+          window.AndroidApp.openExternal(url);
+          return;
+        }
+      } catch (e) {
+        console.warn('AndroidApp bridge notice:', e);
+      }
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    // =========================================================================
+    // SIPSARPRAS (MURNI LINK WEB APPS EKSTERNAL)
+    // =========================================================================
+    function openSIPSarprasApp() {
+      openExternalLink('https://sipsarpras.pernahngoding.my.id/');
+    }
+
+    // =========================================================================
+    // MENU ABSENSI PPMS (KHUSUS WAKA KURIKULUM, KESISWAAN, SARPRAS & PIMPINAN)
+    // =========================================================================
+    function openAbsensiApp() {
+      openExternalLink('https://absensippms.pernahngoding.my.id/Dashboard?unit=MTs');
+    }
+
+    function canAccessAbsensi(user) {
+      if (!user) return false;
+      const role = String(user.Role || '').toLowerCase().trim();
+      const jab = String(user.Jabatan || '').toLowerCase().trim();
+      
+      // 1. Role: admin, kepala, superadmin
+      if (['admin', 'kepala', 'superadmin'].includes(role)) {
+        return true;
+      }
+      // 2. Jabatan: Waka Kurikulum, Waka Kesiswaan, Waka Sarpras (atau jabatan waka lainnya)
+      if (jab.includes('waka') || 
+          jab.includes('kurikulum') || 
+          jab.includes('kesiswaan') || 
+          jab.includes('sarpras')) {
+        return true;
+      }
+      return false;
+    }
+
+    // =========================================================================
+    // CUSTOM IN-PAGE CONFIRMATION MODAL
+    // =========================================================================
+    function showInPageConfirm({ title, message, icon = 'help-circle', confirmText = 'Ya, Lanjutkan', confirmColor = 'brand', onConfirm }) {
+      document.getElementById('confirmModalTitle').innerText = title || 'Konfirmasi';
+      document.getElementById('confirmModalMessage').innerText = message || 'Apakah Anda yakin ingin melanjutkan?';
+      
+      const btnConfirm = document.getElementById('btnConfirmAction');
+      btnConfirm.innerText = confirmText;
+      
+      if (confirmColor === 'red') {
+        btnConfirm.className = 'flex-1 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-sm transition';
+      } else if (confirmColor === 'amber') {
+        btnConfirm.className = 'flex-1 py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-sm transition';
+      } else {
+        btnConfirm.className = 'flex-1 py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-sm transition';
+      }
+
+      pendingConfirmAction = onConfirm;
+
+      const modal = document.getElementById('inPageConfirmModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      safeCreateIcons();
+    }
+
+    function closeInPageConfirm() {
+      const modal = document.getElementById('inPageConfirmModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      pendingConfirmAction = null;
+    }
+
+    function executeInPageConfirm() {
+      const action = pendingConfirmAction;
+      closeInPageConfirm();
+      if (typeof action === 'function') {
+        action();
+      }
+    }
+
+    // =========================================================================
+    // FLOATING NOTIFICATION SYSTEM
+    // =========================================================================
+    let toastTimeout = null;
+    function showFloatingToast(title, message, type = 'info') {
+      const container = document.getElementById('floatingToastContainer');
+      const box = document.getElementById('floatingToastBox');
+      const tTitle = document.getElementById('floatingToastTitle');
+      const tMsg = document.getElementById('floatingToastMessage');
+      const tIcon = document.getElementById('floatingToastIcon');
+      const tWrap = document.getElementById('floatingToastIconWrap');
+
+      tTitle.innerText = title;
+      tMsg.innerText = message;
+
+      if (type === 'success') {
+        tWrap.className = 'w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0';
+        tIcon.setAttribute('data-lucide', 'check-circle');
+      } else if (type === 'error') {
+        tWrap.className = 'w-8 h-8 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center shrink-0';
+        tIcon.setAttribute('data-lucide', 'alert-triangle');
+      } else {
+        tWrap.className = 'w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0';
+        tIcon.setAttribute('data-lucide', 'info');
+      }
+      safeCreateIcons();
+
+      container.classList.remove('hidden');
+      container.classList.add('animate-floating');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        dismissFloatingToast();
+      }, 4000);
+    }
+
+    function dismissFloatingToast() {
+      const container = document.getElementById('floatingToastContainer');
+      container.classList.add('hidden');
+      container.classList.remove('animate-floating');
+    }
+
+    function showToast(message, type = 'info') {
+      const title = type === 'success' ? 'Sukses' : (type === 'error' ? 'Perhatian' : 'Informasi');
+      showFloatingToast(title, message, type);
+    }
+
+    async function fetchWithTimeout(resource, options = {}) {
+      const { timeout = 8500 } = options;
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
+      try {
+        const response = await fetch(resource, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+      } catch (err) {
+        clearTimeout(id);
+        throw err;
+      }
+    }
+
+    // =========================================================================
+    // STARTUP FLOW & SPLASH SCREEN 4 DETIK
+    // =========================================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        updateSchoolUI();
+
+        const pb = document.getElementById('splashProgressBar');
+        if (pb) {
+          setTimeout(() => { pb.style.width = '100%'; }, 50);
+        }
+
+        setTimeout(() => {
+          const st = document.getElementById('splashStatusText');
+          if (st) st.innerText = 'Sinkronisasi profil MTs SAHID...';
+        }, 1800);
+
+        setTimeout(() => {
+          initAppFlow();
+        }, 4000);
+
+      } catch (err) {
+        console.error('Error saat startup:', err);
+        setTimeout(initAppFlow, 4000);
+      }
+    });
+
+    function updateSchoolUI() {
+      const schoolName = liveData.sekolah.NamaSekolah || 'MTs SAHID';
+      const npsn = liveData.sekolah.NPSN || '20277594';
+
+      const topBarEl = document.getElementById('topBarSchoolName');
+      if (topBarEl) topBarEl.innerText = schoolName;
+
+      const loginLbl = document.getElementById('loginSchoolLabel');
+      if (loginLbl) loginLbl.innerText = `${schoolName} (NPSN: ${npsn})`;
+
+      const splashName = document.getElementById('splashSchoolName');
+      if (splashName) splashName.innerText = schoolName;
+    }
+
+    async function initAppFlow() {
+      const splash = document.getElementById('splashScreen');
+      if (splash) {
+        splash.classList.add('opacity-0');
+        setTimeout(() => { splash.classList.add('hidden'); }, 700);
+      }
+
+      await fetchAllDataFromSheets();
+
+      // Cek Sesi Pengguna
+      const session = localStorage.getItem('teachops_session');
+      if (session) {
+        try {
+          currentUser = JSON.parse(session);
+          showMainApp();
+          return;
+        } catch (e) {
+          localStorage.removeItem('teachops_session');
+        }
+      }
+
+      showLoginScreen();
+    }
+
+    function showLoginScreen() {
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('loginScreen').classList.add('flex');
+      document.getElementById('mainApp').classList.add('hidden');
+      updateSchoolUI();
+      safeCreateIcons();
+    }
+
+    function showMainApp() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('flex');
+      document.getElementById('mainApp').classList.remove('hidden');
+
+      applyRolePermissions();
+      updateSchoolUI();
+      renderDashboardOverview();
+      renderJadwalScreen(currentJadwalFilterDay);
+      renderPiketCards();
+      renderRiwayatIzin();
+      renderMonitoringScreen();
+      populateDropdownsFromDatabase();
+
+      // Jalankan sinkronisasi background real-time setiap 25 detik
+      if (!window.teachOpsRealtimeSyncTimer) {
+        window.teachOpsRealtimeSyncTimer = setInterval(fetchAllDataFromSheets, 25000);
+      }
+
+      safeCreateIcons();
+    }
+
+    // Role Visibility Settings
+    function applyRolePermissions() {
+      if (!currentUser) return;
+      const role = String(currentUser.Role || 'guru').toLowerCase().trim();
+      const isSuperadmin = (role === 'superadmin');
+      const isAdminOrSuper = (role === 'admin' || role === 'superadmin');
+      const canViewMonitoring = (role === 'kepala' || role === 'admin' || role === 'superadmin');
+
+      // 1. Menu Monitoring: Hanya superadmin, admin, kepala (Guru biasa disembunyikan)
+      const bnavMon = document.getElementById('bnav-monitoring');
+      if (bnavMon) bnavMon.classList.toggle('hidden', !canViewMonitoring);
+
+      const monBanner = document.getElementById('monitoringQuickBanner');
+      if (monBanner) monBanner.classList.toggle('hidden', !canViewMonitoring);
+
+      // 2. Menu Pengaturan: HANYA Superadmin (Keamanan URL GAS terjaga)
+      const menuSettings = document.getElementById('menuBtnSettings');
+      if (menuSettings) menuSettings.classList.toggle('hidden', !isSuperadmin);
+
+      // 3. Tombol Tambah Jadwal & Piket: Admin & Superadmin
+      const btnAddJadwal = document.getElementById('btnTambahJadwal');
+      if (btnAddJadwal) btnAddJadwal.classList.toggle('hidden', !isAdminOrSuper);
+
+      const btnAddPiket = document.getElementById('btnTambahPiket');
+      if (btnAddPiket) btnAddPiket.classList.toggle('hidden', !isAdminOrSuper);
+
+      // 4. Menu Absensi PPMS Eksternal: Khusus Waka Kurikulum, Waka Kesiswaan, Waka Sarpras, Admin, Kepala & Superadmin
+      const hasAbsensi = canAccessAbsensi(currentUser);
+      const bnavAbs = document.getElementById('bnav-absensi');
+      if (bnavAbs) bnavAbs.classList.toggle('hidden', !hasAbsensi);
+
+      const menuAbs = document.getElementById('menuBtnAbsensi');
+      if (menuAbs) menuAbs.classList.toggle('hidden', !hasAbsensi);
+
+      const bannerAbs = document.getElementById('absensiQuickBanner');
+      if (bannerAbs) bannerAbs.classList.toggle('hidden', !hasAbsensi);
+
+      // 5. Tombol Atur Waktu Sesi: Admin & Superadmin
+      const btnSesi = document.getElementById('menuBtnAturSesi');
+      if (btnSesi) btnSesi.classList.toggle('hidden', !isAdminOrSuper);
+    }
+
+    // =========================================================================
+    // DATA SYNC WITH GOOGLE SHEETS
+    // =========================================================================
+    async function fetchAllDataFromSheets() {
+      const url = getGasUrl();
+      if (!url) return;
+
+      try {
+        const resp = await fetchWithTimeout(`${url}?action=getAllData`, { method: 'GET', mode: 'cors', timeout: 8000 });
+        const res = await resp.json();
+        if (res && res.success) {
+          if (res.sekolah && Object.keys(res.sekolah).length > 0) {
+            liveData.sekolah = { ...liveData.sekolah, ...res.sekolah };
+          }
+          if (res.users && res.users.length > 0) {
+            liveData.users = res.users;
+          }
+          liveData.kelas = res.kelas || [];
+          liveData.mapel = res.mapel || [];
+          liveData.jadwalMapel = res.jadwalMapel || [];
+          liveData.jadwalPiket = res.jadwalPiket || [];
+          liveData.izinTugas = res.izinTugas || [];
+
+          lastSyncTimestamp = new Date();
+          const syncPill = document.getElementById('liveSyncStatusText');
+          if (syncPill) {
+            syncPill.innerText = `Sinkron ${lastSyncTimestamp.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+          }
+
+          updateSchoolUI();
+
+          if (currentUser) {
+            renderDashboardOverview();
+            renderJadwalScreen(currentJadwalFilterDay);
+            renderPiketCards();
+            renderMonitoringScreen();
+            populateDropdownsFromDatabase();
+          }
+        }
+      } catch (err) {
+        console.warn('Gagal sync live data dari Database MTs SAHID:', err);
+      }
+    }
+
+    async function refreshDataFromSheets() {
+      showFloatingToast('Sinkronisasi', 'Menyinkronkan data dengan spreadsheet MTs SAHID...', 'info');
+      await fetchAllDataFromSheets();
+      showFloatingToast('Tersinkron', 'Data sekolah berhasil diperbarui!', 'success');
+    }
+
+    // =========================================================================
+    // POPULATE DROPDOWNS DARI DATABASE (TARIK DATA OTOMATIS)
+    // =========================================================================
+    function populateDropdownsFromDatabase() {
+      // 1. Dropdown Form Izin: Kelas (Filter kelas yang valid saja)
+      const validKelas = liveData.kelas.filter(k => {
+        const n = k.NamaKelas || k.namaKelas || k.Kelas || k.nama;
+        return Boolean(n && String(n).trim() !== '');
+      });
+
+      const izinKelas = document.getElementById('inputIzinKelas');
+      if (izinKelas) {
+        if (validKelas.length === 0) {
+          izinKelas.innerHTML = `<option value="">(Belum ada data kelas di database)</option>`;
+        } else {
+          izinKelas.innerHTML = `<option value="">-- Pilih Kelas --</option>` + 
+            validKelas.map(k => {
+              const nama = k.NamaKelas || k.namaKelas || k.Kelas || k.nama;
+              const tingkat = k.Tingkat || k.tingkat || '';
+              return `<option value="${nama}">${nama} ${tingkat ? '(' + tingkat + ')' : ''}</option>`;
+            }).join('');
+        }
+      }
+
+      // 2. Dropdown Form Izin: Mapel
+      const izinMapel = document.getElementById('inputIzinMapel');
+      if (izinMapel) {
+        if (liveData.mapel.length === 0) {
+          izinMapel.innerHTML = `<option value="">(Belum ada mata pelajaran)</option>`;
+        } else {
+          izinMapel.innerHTML = `<option value="">-- Pilih Mata Pelajaran --</option>` + 
+            liveData.mapel.map(m => `<option value="${m.NamaMapel}">${m.NamaMapel} (${m.Kategori || 'Umum'})</option>`).join('');
+        }
+      }
+
+      // 3. Dropdown Tambah Jadwal: Kelas
+      const jadwalKelas = document.getElementById('newJadwalKelasSelect');
+      if (jadwalKelas) {
+        if (validKelas.length === 0) {
+          jadwalKelas.innerHTML = `<option value="">(Belum ada kelas - Tambah di Data Kelas)</option>`;
+        } else {
+          jadwalKelas.innerHTML = `<option value="">-- Pilih Kelas dari Database --</option>` + 
+            validKelas.map(k => {
+              const nama = k.NamaKelas || k.namaKelas || k.Kelas || k.nama;
+              const tingkat = k.Tingkat || k.tingkat || '';
+              return `<option value="${nama}">${nama} ${tingkat ? '(' + tingkat + ')' : ''}</option>`;
+            }).join('');
+        }
+      }
+
+      // 4. Dropdown Tambah Jadwal: Mapel
+      const jadwalMapel = document.getElementById('newJadwalMapelSelect');
+      if (jadwalMapel) {
+        if (liveData.mapel.length === 0) {
+          jadwalMapel.innerHTML = `<option value="">(Belum ada mapel - Tambah di Data Mapel)</option>`;
+        } else {
+          jadwalMapel.innerHTML = `<option value="">-- Pilih Mata Pelajaran dari Database --</option>` + 
+            liveData.mapel.map(m => `<option value="${m.NamaMapel}">${m.NamaMapel} (${m.Kategori || 'Umum'})</option>`).join('');
+        }
+      }
+
+      // 5. Dropdown Tambah Jadwal: Guru Pengampu
+      const jadwalGuru = document.getElementById('newJadwalGuruSelect');
+      if (jadwalGuru) {
+        if (liveData.users.length === 0) {
+          jadwalGuru.innerHTML = `<option value="">(Belum ada guru - Tambah di Data Guru)</option>`;
+        } else {
+          jadwalGuru.innerHTML = `<option value="">-- Pilih Guru Pengampu --</option>` + 
+            liveData.users.map(u => `<option value="${u.PegID}">${u.Nama} [${u.PegID}]</option>`).join('');
+        }
+      }
+
+      // 6. Dropdown Tambah Piket: Guru
+      const piketGuru = document.getElementById('newPiketGuruSelect');
+      if (piketGuru) {
+        if (liveData.users.length === 0) {
+          piketGuru.innerHTML = `<option value="">(Belum ada guru terdaftar)</option>`;
+        } else {
+          piketGuru.innerHTML = `<option value="">-- Pilih Guru Piket --</option>` + 
+            liveData.users.map(u => `<option value="${u.PegID}">${u.Nama} [${u.PegID}]</option>`).join('');
+        }
+      }
+    }
+
+    // =========================================================================
+    // LOGIN & AUTHENTICATION
+    // =========================================================================
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pegid = document.getElementById('loginPegid').value.trim().toUpperCase();
+      const pass = document.getElementById('loginPassword').value.trim();
+      const btn = document.getElementById('btnLoginSubmit');
+      const url = getGasUrl();
+
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Memverifikasi...</span>`;
+      safeCreateIcons();
+
+      // Cek apakah ada URL GAS online
+      if (url) {
+        try {
+          const resp = await fetchWithTimeout(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'login', pegid, password: pass })
+          });
+          const res = await resp.json();
+
+          if (res && res.success) {
+            currentUser = res.user;
+            localStorage.setItem('teachops_session', JSON.stringify(currentUser));
+            showFloatingToast('Selamat Datang', `Login berhasil sebagai ${currentUser.Nama}`, 'success');
+            showMainApp();
+            return;
+          } else {
+            showFloatingToast('Login Gagal', res.message || 'PegID atau Password tidak cocok dengan database MTs SAHID.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke TeachOps</span>`;
+            safeCreateIcons();
+            return;
+          }
+        } catch (err) {
+          console.warn('Gagal verifikasi GAS online, cek akun lokal MTs SAHID:', err);
+        }
+      }
+
+      // Otentikasi data lokal MTs SAHID
+      const match = liveData.users.find(u => 
+        String(u.PegID).toUpperCase().trim() === pegid && 
+        String(u.Pass).trim() === pass
+      );
+
+      if (match) {
+        currentUser = {
+          PegID: match.PegID,
+          Nama: match.Nama,
+          Role: match.Role,
+          Jabatan: match.Jabatan
+        };
+        localStorage.setItem('teachops_session', JSON.stringify(currentUser));
+        showFloatingToast('Selamat Datang', `Login berhasil sebagai ${currentUser.Nama}`, 'success');
+        showMainApp();
+      } else {
+        showFloatingToast('Login Gagal', 'PegID atau Password tidak cocok dengan akun MTs SAHID.', 'error');
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk ke TeachOps</span>`;
+      safeCreateIcons();
+    });
+
+    function confirmLogoutAction() {
+      showInPageConfirm({
+        title: 'Keluar Akun',
+        message: 'Apakah Anda yakin ingin keluar dari sesi TeachOps MTs SAHID?',
+        icon: 'log-out',
+        confirmText: 'Ya, Keluar',
+        confirmColor: 'red',
+        onConfirm: () => {
+          localStorage.removeItem('teachops_session');
+          currentUser = null;
+          showLoginScreen();
+          showFloatingToast('Keluar', 'Anda telah berhasil keluar.', 'info');
+        }
+      });
+    }
+
+    // =========================================================================
+    // DASHBOARD OVERVIEW & SESI REAL-TIME
+    // =========================================================================
+    function getTodayDayName() {
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      return days[new Date().getDay()];
+    }
+
+    function getCurrentActiveSesi() {
+      const today = getTodayDayName();
+      const master = getMasterSesi(today);
+
+      if (simulatedSesiId !== 'REALTIME') {
+        const s = master.find(x => x.id === simulatedSesiId);
+        return s || { id: simulatedSesiId, jam: 'Simulasi' };
+      }
+      const now = new Date();
+      const curMin = now.getHours() * 60 + now.getMinutes();
+      const found = master.find(s => curMin >= s.startMin && curMin <= s.endMin);
+      return found || { id: 'Di Luar Sesi', jam: (today === 'Jumat' ? '08.00 - 15.00' : '08.30 - 15.00') };
+    }
+
+    function renderDashboardOverview() {
+      if (!currentUser) return;
+
+      document.getElementById('userNameDisplay').innerText = currentUser.Nama;
+      document.getElementById('userRoleBadge').innerText = currentUser.Role;
+      document.getElementById('userPegidDisplay').innerText = `PEGID: ${currentUser.PegID}`;
+      document.getElementById('userInitialDisplay').innerText = (currentUser.Nama || 'U').charAt(0).toUpperCase();
+
+      // Badge Jabatan
+      const jabBadge = document.getElementById('userJabatanBadge');
+      if (jabBadge) {
+        if (currentUser.Jabatan && currentUser.Jabatan.trim() !== '') {
+          jabBadge.innerText = currentUser.Jabatan;
+          jabBadge.classList.remove('hidden');
+        } else {
+          jabBadge.classList.add('hidden');
+        }
+      }
+
+      // Desktop User Pill
+      const dName = document.getElementById('desktopUserName');
+      if (dName) dName.innerText = currentUser.Nama;
+      const dBadge = document.getElementById('desktopUserBadge');
+      if (dBadge) dBadge.innerText = currentUser.Jabatan || currentUser.Role;
+
+      const today = getTodayDayName();
+      document.getElementById('currentDateDisplay').innerText = `${today}, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+
+      const curSesi = getCurrentActiveSesi();
+      document.getElementById('activeSesiBadge').innerText = `● ${curSesi.id}`;
+      document.getElementById('activeJamBadge').innerText = `(${curSesi.jam})`;
+
+      // 1. Notifikasi Guru Piket Hari Ini (Dukung PegID & PegIDGuru, Admin/Superadmin juga dapat info)
+      const cleanMyPegid = String(currentUser.PegID).toUpperCase().trim();
+      const myRole = String(currentUser.Role || '').toLowerCase().trim();
+      const isPrivileged = (myRole === 'admin' || myRole === 'superadmin');
+
+      const isPiketToday = liveData.jadwalPiket.some(p => {
+        const pId = String(p.PegID || p.PegIDGuru || p.pegid || '').toUpperCase().trim();
+        return pId === cleanMyPegid && String(p.Hari).toLowerCase() === today.toLowerCase();
+      }) || isPrivileged;
+
+      const todayYmd = normalizeDateStr(new Date());
+      // Tangkap semua izin yang Pending (atau izin hari ini)
+      const pendingIzin = liveData.izinTugas.filter(i => {
+        const itemYmd = normalizeDateStr(i.Tanggal);
+        const isPending = (i.Status === 'Pending');
+        const isToday = (itemYmd === todayYmd);
+        return isPending || (isToday && i.Status !== 'Selesai');
+      });
+
+      const piketAlertBox = document.getElementById('piketUrgentAlert');
+      const piketBadgeDot = document.getElementById('piketBadgeDot');
+      
+      if (isPiketToday && pendingIzin.length > 0) {
+        piketAlertBox.classList.remove('hidden');
+        piketBadgeDot.classList.remove('hidden');
+        document.getElementById('piketAlertCount').innerText = `${pendingIzin.length} Izin Perlu Inval`;
+        const first = pendingIzin[0];
+        const guruIzin = liveData.users.find(u => String(u.PegID).toUpperCase() === String(first.PegIDGuru).toUpperCase());
+        const namaGuru = guruIzin ? guruIzin.Nama : first.PegIDGuru;
+        const alasanText = first.Alasan || first.Alasa || first.alasan || 'Izin';
+        document.getElementById('piketAlertTitle').innerText = `🚨 ${namaGuru} (${first.Kelas} - ${first.Sesi}): ${alasanText}. Tugas inval menunggu klaim.`;
+      } else {
+        piketAlertBox.classList.add('hidden');
+        piketBadgeDot.classList.add('hidden');
+      }
+
+      // 2. Floating Quick Banner di Atas
+      const banner = document.getElementById('bannerContent');
+      const bannerText = document.getElementById('bannerText');
+      if (isPiketToday && pendingIzin.length > 0) {
+        banner.classList.remove('hidden');
+        bannerText.innerText = `Piket: ${pendingIzin.length} kelas izin membutuhkan pendampingan inval hari ini!`;
+      } else {
+        const myJadwalSesi = liveData.jadwalMapel.find(j =>
+          String(j.PegIDGuru || j.PegID || '').toUpperCase().trim() === cleanMyPegid &&
+          String(j.Hari).toLowerCase() === today.toLowerCase() &&
+          String(j.Sesi).toLowerCase() === curSesi.id.toLowerCase()
+        );
+        if (myJadwalSesi) {
+          banner.classList.remove('hidden');
+          bannerText.innerText = `Sesi Aktif: Mengajar ${myJadwalSesi.Mapel} di ${myJadwalSesi.Kelas}`;
+        } else {
+          banner.classList.add('hidden');
+        }
+      }
+
+      // 3. Card Jam Mengajar Anda
+      renderActiveTeachingBox(today, curSesi, cleanMyPegid);
+
+      // 4. Rekap Guru Izin Real-Time Hari Ini (Web & Tablet Overview)
+      const rekapIzinBox = document.getElementById('rekapIzinHariIniContainer');
+      const badgeIzinCount = document.getElementById('badgeCountIzinHariIni');
+      if (rekapIzinBox) {
+        const todayLeaves = liveData.izinTugas.filter(i => {
+          const itemYmd = normalizeDateStr(i.Tanggal);
+          return itemYmd === todayYmd || i.Status === 'Pending';
+        });
+
+        if (badgeIzinCount) {
+          badgeIzinCount.innerText = `${todayLeaves.length} Izin`;
+        }
+
+        if (todayLeaves.length === 0) {
+          rekapIzinBox.innerHTML = `
+            <div class="p-3 text-center text-gray-400 italic bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+              Alhamdulillah, tidak ada guru izin atau kelas kosong hari ini.
+            </div>
+          `;
+        } else {
+          rekapIzinBox.innerHTML = todayLeaves.map(item => {
+            const guru = liveData.users.find(u => String(u.PegID).toUpperCase() === String(item.PegIDGuru).toUpperCase());
+            const namaGuru = guru ? guru.Nama : item.PegIDGuru;
+            const alasanText = item.Alasan || item.Alasa || item.alasan || 'Izin';
+            const displayDate = formatDisplayDate(item.Tanggal);
+            const piketUser = liveData.users.find(u => String(u.PegID).toUpperCase() === String(item.ClaimedByPegID).toUpperCase());
+            const namaPiket = piketUser ? piketUser.Nama : (item.ClaimedByPegID || '-');
+            const isClaimable = (item.Status === 'Pending') && (isPiketToday || isPrivileged);
+
+            return `
+              <div class="p-3 bg-gray-50 rounded-2xl border border-gray-200 space-y-1.5 transition hover:bg-white hover:shadow-xs">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="w-2 h-2 rounded-full ${item.Status === 'Selesai' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}"></span>
+                    <strong class="text-gray-900 truncate">${namaGuru}</strong>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${item.Status === 'Selesai' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                    ${item.Status === 'Pending' ? 'Perlu Inval' : item.Status}
+                  </span>
+                </div>
+                <div class="text-[11px] text-gray-600 flex flex-wrap gap-x-2 gap-y-0.5">
+                  <span class="font-bold text-gray-800">${item.Kelas}</span>
+                  <span>•</span>
+                  <span>${item.Mapel}</span>
+                  <span>•</span>
+                  <span class="text-brand-700 font-semibold">${item.Sesi}</span>
+                  <span>•</span>
+                  <span class="text-amber-800 italic">${alasanText}</span>
+                </div>
+                ${item.DeskripsiTugas ? `<p class="text-[11px] text-gray-500 bg-white p-2 rounded-xl border border-gray-100 line-clamp-2"><strong>Tugas:</strong> ${item.DeskripsiTugas}</p>` : ''}
+                <div class="flex items-center justify-between pt-1 text-[10px]">
+                  <span class="text-gray-400">${displayDate}</span>
+                  ${item.ClaimedByPegID ? `<span class="text-blue-700 font-medium">Inval: ${namaPiket}</span>` : ''}
+                  ${isClaimable ? `
+                    <button onclick="claimTugasPiketDirect('${item.ID}')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition active:scale-95 shadow-xs">
+                      Klaim Inval
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // 5. Rekap Petugas Piket Hari Ini
+      const rekapPiketBox = document.getElementById('rekapPiketHariIniContainer');
+      const badgePiketCount = document.getElementById('badgeCountPiketHariIni');
+      if (rekapPiketBox) {
+        const todayPiket = liveData.jadwalPiket.filter(p => String(p.Hari).toLowerCase() === today.toLowerCase());
+        if (badgePiketCount) {
+          badgePiketCount.innerText = `${todayPiket.length} Petugas`;
+        }
+        if (todayPiket.length === 0) {
+          rekapPiketBox.innerHTML = `
+            <div class="p-3 text-center text-gray-400 italic bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+              Belum ada petugas piket yang dijadwalkan untuk hari ${today}.
+            </div>
+          `;
+        } else {
+          rekapPiketBox.innerHTML = todayPiket.map(p => {
+            const pId = String(p.PegID || p.PegIDGuru || '').toUpperCase().trim();
+            const u = liveData.users.find(x => String(x.PegID).toUpperCase().trim() === pId);
+            const nama = u ? u.Nama : pId;
+            const sesi = p.Sesi || 'Semua Sesi';
+            const isMe = (pId === cleanMyPegid);
+            return `
+              <div class="p-2.5 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-between text-xs ${isMe ? 'border-brand-300 bg-brand-50/50' : ''}">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                    <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div>
+                    <strong class="text-gray-900">${nama} ${isMe ? '<span class="text-brand-600 font-bold">(Anda)</span>' : ''}</strong>
+                    <p class="text-[10px] text-gray-500 font-mono">${pId}</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white text-emerald-800 border border-emerald-100">
+                  ${sesi}
+                </span>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    // Direct claim tugas piket dari dashboard rekap
+    async function claimTugasPiketDirect(id) {
+      if (!currentUser) return;
+      showInPageConfirm({
+        title: 'Klaim Pendampingan Inval',
+        message: 'Apakah Anda yakin ingin mengambil alih pendampingan kelas ini sebagai Guru Piket?',
+        icon: 'hand',
+        confirmText: 'Ya, Klaim',
+        confirmColor: 'brand',
+        onConfirm: async () => {
+          const url = getGasUrl();
+          if (url) {
+            try {
+              await fetchWithTimeout(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'claimTugas', id: id, claimedByPegID: currentUser.PegID })
+              });
+              await fetchAllDataFromSheets();
+            } catch (e) {
+              console.warn('Gagal klaim di GAS:', e);
+            }
+          }
+          const item = liveData.izinTugas.find(x => String(x.ID) === String(id));
+          if (item) {
+            item.Status = 'Diklaim';
+            item.ClaimedByPegID = currentUser.PegID;
+          }
+          showFloatingToast('Berhasil', 'Kelas berhasil Anda klaim! Silakan dampingi siswa di kelas.', 'success');
+          renderDashboardOverview();
+          renderPiketCards();
+          renderMonitoringScreen();
+        }
+      });
+    }
+
+    function renderActiveTeachingBox(today, curSesi, cleanMyPegid) {
+      const container = document.getElementById('activeClassDetails');
+      const pill = document.getElementById('statusMengajarPill');
+
+      const jadwalSayaHariIni = liveData.jadwalMapel.filter(j =>
+        String(j.PegIDGuru || j.PegID || '').toUpperCase().trim() === cleanMyPegid &&
+        String(j.Hari).toLowerCase() === today.toLowerCase()
+      );
+
+      const activeSesiSchedule = jadwalSayaHariIni.find(j => 
+        String(j.Sesi).toLowerCase() === curSesi.id.toLowerCase()
+      );
+
+      if (activeSesiSchedule) {
+        pill.innerText = 'SEDANG BERLANGSUNG';
+        pill.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 animate-pulse';
+        container.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="px-2 py-0.5 bg-brand-50 text-brand-700 font-bold rounded-md text-[10px]">${activeSesiSchedule.Sesi}</span>
+              <h4 class="font-extrabold text-gray-900 text-sm mt-1">${activeSesiSchedule.Mapel} • ${activeSesiSchedule.Kelas}</h4>
+              <p class="text-gray-500 text-[11px] font-mono mt-0.5">${activeSesiSchedule.Jam} WIB</p>
+            </div>
+            <div class="w-10 h-10 rounded-2xl bg-brand-500 text-white flex items-center justify-center font-bold">
+              <i data-lucide="play" class="w-5 h-5 ml-0.5"></i>
+            </div>
+          </div>
+        `;
+      } else {
+        pill.innerText = 'TIDAK ADA JADWAL SESI INI';
+        pill.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-600';
+
+        if (jadwalSayaHariIni.length > 0) {
+          container.innerHTML = `
+            <p class="text-gray-600 text-[11px] mb-2">Anda memiliki <strong>${jadwalSayaHariIni.length} sesi mengajar</strong> pada hari ${today}:</p>
+            <div class="space-y-1.5">
+              ${jadwalSayaHariIni.map(s => `
+                <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-gray-100 text-[11px]">
+                  <span class="font-bold text-gray-800">${s.Sesi}: ${s.Mapel} (${s.Kelas})</span>
+                  <span class="font-mono text-gray-500 text-[10px]">${s.Jam}</span>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div class="text-center py-2 text-gray-400">
+              <i data-lucide="coffee" class="w-6 h-6 mx-auto mb-1 opacity-50"></i>
+              <p class="text-[11px]">Tidak ada jadwal mengajar terdaftar untuk Anda pada hari ${today}.</p>
+            </div>
+          `;
+        }
+      }
+      safeCreateIcons();
+    }
+
+    // =========================================================================
+    // JADWAL MENGAJAR (TARIK DATA DARI DATABASE)
+    // =========================================================================
+    function setJadwalDayFilter(hari) {
+      currentJadwalFilterDay = hari;
+      document.querySelectorAll('.day-filter-btn').forEach(b => {
+        const isMatch = (b.innerText === hari);
+        b.className = isMatch
+          ? 'day-filter-btn px-3.5 py-1.5 rounded-xl font-bold bg-brand-600 text-white shadow-xs'
+          : 'day-filter-btn px-3.5 py-1.5 rounded-xl font-bold bg-white text-gray-600 border border-gray-200';
+      });
+      renderJadwalScreen(hari);
+    }
+
+    function renderJadwalScreen(hari) {
+      const container = document.getElementById('jadwalListContainer');
+      const filtered = liveData.jadwalMapel.filter(j => String(j.Hari).toLowerCase() === hari.toLowerCase());
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-white rounded-3xl border border-gray-100 text-gray-400">
+            <i data-lucide="calendar-x" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+            <p class="font-bold text-xs">Belum ada sesi mengajar hari ${hari}</p>
+            <p class="text-[11px] mt-0.5">Admin atau Superadmin dapat menambahkan sesi jadwal.</p>
+          </div>
+        `;
+        safeCreateIcons();
+        return;
+      }
+
+      const role = String(currentUser?.Role || '').toLowerCase();
+      const isAdminOrSuper = (role === 'admin' || role === 'superadmin');
+
+      container.innerHTML = filtered.map((item, idx) => {
+        const pId = String(item.PegIDGuru || item.PegID || '').toUpperCase().trim();
+        const guru = liveData.users.find(u => String(u.PegID).toUpperCase().trim() === pId);
+        const namaGuru = guru ? guru.Nama : (pId || '-');
+        const isMyClass = currentUser && (pId === String(currentUser.PegID).toUpperCase().trim());
+
+        return `
+          <div class="p-4 rounded-2xl bg-white border ${isMyClass ? 'border-brand-500/40 bg-brand-50/20 shadow-xs' : 'border-gray-100'} flex items-center justify-between text-xs">
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5">
+                <span class="px-2 py-0.5 rounded-md font-bold text-[10px] bg-brand-50 text-brand-700">${item.Sesi || 'Sesi 1'}</span>
+                <span class="px-2 py-0.5 rounded-md font-bold text-[10px] bg-gray-100 text-gray-800 border border-gray-200">${item.Kelas}</span>
+                <span class="text-gray-400 font-mono text-[10px]">${item.Jam}</span>
+              </div>
+              <h4 class="font-black text-gray-900 text-sm">${item.Mapel}</h4>
+              <p class="text-gray-500 text-[11px] flex items-center gap-1">
+                <i data-lucide="user" class="w-3 h-3 text-gray-400"></i>
+                <span>${namaGuru}</span>
+                <span class="font-mono text-gray-400">(${pId})</span>
+              </p>
+            </div>
+            ${isAdminOrSuper ? `
+              <button onclick="deleteJadwalFromSheet(${idx})" class="p-2 text-gray-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      safeCreateIcons();
+    }
+
+    function openTambahJadwalModal() {
+      populateDropdownsFromDatabase();
+      document.getElementById('modalTambahJadwal').classList.remove('hidden');
+      document.getElementById('modalTambahJadwal').classList.add('flex');
+    }
+    function closeTambahJadwalModal() {
+      document.getElementById('modalTambahJadwal').classList.add('hidden');
+      document.getElementById('modalTambahJadwal').classList.remove('flex');
+    }
+
+    function handleJadwalHariChanged(hari) {
+      const sesiList = getTeachingSessionsOnly(hari);
+      const select = document.getElementById('newJadwalSesi');
+      if (select) {
+        select.innerHTML = sesiList.map(s => `<option value="${s.id}">${s.id} (${s.jam})</option>`).join('');
+        if (sesiList.length > 0) {
+          autoFillJamFromSesi(sesiList[0].id);
+        }
+      }
+    }
+
+    function handlePiketHariChanged(hari) {
+      const sesiList = getTeachingSessionsOnly(hari);
+      const select = document.getElementById('newPiketSesi');
+      if (select) {
+        select.innerHTML = sesiList.map(s => `<option value="${s.id} (${s.jam})">${s.id} (${s.jam})</option>`).join('') +
+          `<option value="Semua Sesi">Semua Sesi (${hari === 'Jumat' ? '08.00 - 15.00' : '08.30 - 15.00'})</option>`;
+      }
+    }
+
+    function handleIzinTanggalChanged(dateVal) {
+      if (!dateVal) return;
+      const d = new Date(dateVal + 'T00:00:00');
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const dayName = days[d.getDay()] || 'Senin';
+      const sesiList = getTeachingSessionsOnly(dayName);
+      const select = document.getElementById('inputIzinSesi');
+      if (select) {
+        select.innerHTML = sesiList.map(s => `<option value="${s.id} (${s.jam})">${s.id} (${s.jam})</option>`).join('') +
+          `<option value="Sepanjang Hari">Sepanjang Hari (${dayName === 'Jumat' ? '08.00 - 15.00' : '08.30 - 15.00'})</option>`;
+      }
+    }
+
+    function autoFillJamFromSesi(sesiVal) {
+      const hari = document.getElementById('newJadwalHari')?.value || 'Senin';
+      const list = getMasterSesi(hari);
+      const match = list.find(s => s.id === sesiVal);
+      if (match && document.getElementById('newJadwalJam')) {
+        document.getElementById('newJadwalJam').value = match.jam;
+      }
+    }
+
+    async function handleSaveNewJadwal(e) {
+      e.preventDefault();
+      const hari = document.getElementById('newJadwalHari').value;
+      const sesi = document.getElementById('newJadwalSesi').value;
+      const jam = document.getElementById('newJadwalJam').value;
+      const kelas = document.getElementById('newJadwalKelasSelect').value;
+      const mapel = document.getElementById('newJadwalMapelSelect').value;
+      const pegid = document.getElementById('newJadwalGuruSelect').value;
+      const btn = document.getElementById('btnSaveJadwalSubmit');
+
+      if (!kelas) return showFloatingToast('Validasi', 'Silakan pilih kelas terlebih dahulu!', 'error');
+      if (!mapel) return showFloatingToast('Validasi', 'Silakan pilih mata pelajaran terlebih dahulu!', 'error');
+      if (!pegid) return showFloatingToast('Validasi', 'Silakan pilih guru pengampu!', 'error');
+
+      const url = getGasUrl();
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+
+      const payload = { Hari: hari, Sesi: sesi, Jam: jam, Kelas: kelas, Mapel: mapel, PegIDGuru: pegid, PegID: pegid };
+
+      if (url) {
+        try {
+          const resp = await fetchWithTimeout(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'saveJadwalMapel', jadwal: payload })
+          });
+          const res = await resp.json();
+          if (res.success) {
+            showFloatingToast('Tersimpan', 'Jadwal sesi mengajar berhasil disimpan ke database!', 'success');
+            closeTambahJadwalModal();
+            await fetchAllDataFromSheets();
+            return;
+          }
+        } catch (err) {
+          console.warn('Gagal POST GAS, menyimpan ke state lokal:', err);
+        }
+      }
+
+      liveData.jadwalMapel.push(payload);
+      showFloatingToast('Tersimpan', 'Jadwal sesi mengajar disimpan!', 'success');
+      closeTambahJadwalModal();
+      renderJadwalScreen(currentJadwalFilterDay);
+      btn.disabled = false;
+      btn.innerText = 'Simpan Sesi';
+    }
+
+    function deleteJadwalFromSheet(index) {
+      showInPageConfirm({
+        title: 'Hapus Jadwal',
+        message: 'Apakah Anda yakin ingin menghapus baris jadwal mengajar ini?',
+        icon: 'trash-2',
+        confirmText: 'Ya, Hapus',
+        confirmColor: 'red',
+        onConfirm: async () => {
+          const url = getGasUrl();
+          if (url) {
+            try {
+              await fetchWithTimeout(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'deleteJadwalMapel', index })
+              });
+              await fetchAllDataFromSheets();
+            } catch (e) {
+              console.warn('Gagal hapus di GAS:', e);
+            }
+          }
+          liveData.jadwalMapel.splice(index, 1);
+          showFloatingToast('Dihapus', 'Jadwal berhasil dihapus.', 'info');
+          renderJadwalScreen(currentJadwalFilterDay);
+        }
+      });
+    }
+
+    // =========================================================================
+    // JADWAL PIKET (FIX: COCOKKAN PegID & PegIDGuru, TIDAK LAGI UNDEFINED)
+    // =========================================================================
+    function openTambahPiketModal() {
+      populateDropdownsFromDatabase();
+      document.getElementById('modalTambahPiket').classList.remove('hidden');
+      document.getElementById('modalTambahPiket').classList.add('flex');
+    }
+    function closeTambahPiketModal() {
+      document.getElementById('modalTambahPiket').classList.add('hidden');
+      document.getElementById('modalTambahPiket').classList.remove('flex');
+    }
+
+    async function handleSaveNewPiket(e) {
+      e.preventDefault();
+      const hari = document.getElementById('newPiketHari').value;
+      const sesi = document.getElementById('newPiketSesi').value;
+      const pegid = document.getElementById('newPiketGuruSelect').value;
+      const btn = document.getElementById('btnSavePiketSubmit');
+
+      if (!pegid) return showFloatingToast('Validasi', 'Silakan pilih guru piket!', 'error');
+
+      const url = getGasUrl();
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+
+      const payload = { Hari: hari, Sesi: sesi, PegID: pegid, PegIDGuru: pegid };
+
+      if (url) {
+        try {
+          const resp = await fetchWithTimeout(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'saveJadwalPiket', jadwal: payload })
+          });
+          const res = await resp.json();
+          if (res.success) {
+            showFloatingToast('Tersimpan', `Petugas piket hari ${hari} tersimpan di database!`, 'success');
+            closeTambahPiketModal();
+            await fetchAllDataFromSheets();
+            return;
+          }
+        } catch (err) {
+          console.warn('Gagal POST GAS:', err);
+        }
+      }
+
+      liveData.jadwalPiket.push(payload);
+      showFloatingToast('Tersimpan', `Petugas piket hari ${hari} tersimpan!`, 'success');
+      closeTambahPiketModal();
+      renderPiketCards();
+      btn.disabled = false;
+      btn.innerText = 'Simpan Piket';
+    }
+
+    function renderPiketCards() {
+      const today = getTodayDayName();
+      const piketHariIni = liveData.jadwalPiket.filter(p => String(p.Hari).toLowerCase() === today.toLowerCase());
+      const cleanMyPegid = currentUser ? String(currentUser.PegID).toUpperCase().trim() : '';
+      const role = String(currentUser?.Role || '').toLowerCase().trim();
+      const isAdminOrSuper = (role === 'admin' || role === 'superadmin');
+
+      const isMePiketScheduled = piketHariIni.some(p => {
+        const pId = String(p.PegID || p.PegIDGuru || p.pegid || '').toUpperCase().trim();
+        return pId === cleanMyPegid;
+      });
+
+      const isMePiket = isMePiketScheduled || isAdminOrSuper;
+
+      const badge = document.getElementById('piketBadgeStatus');
+      if (badge) {
+        badge.innerText = isMePiketScheduled 
+          ? 'BERTUGAS PIKET HARI INI' 
+          : (isAdminOrSuper ? 'AKSES KOORDINATOR PIKET' : 'BUKAN PETUGAS HARI INI');
+        badge.className = (isMePiketScheduled || isAdminOrSuper)
+          ? 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800'
+          : 'px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-gray-100 text-gray-600';
+      }
+
+      const listEl = document.getElementById('piketListHariIni');
+      if (listEl) {
+        if (piketHariIni.length === 0) {
+          listEl.innerHTML = `<p class="text-gray-400 italic">Belum ada penugasan guru piket pada hari ${today}.</p>`;
+        } else {
+          listEl.innerHTML = piketHariIni.map(p => {
+            const pId = String(p.PegID || p.PegIDGuru || p.pegid || '').trim();
+            const guru = liveData.users.find(u => String(u.PegID).trim() === pId);
+            const nama = guru ? guru.Nama : (pId || 'Petugas');
+            const sesi = p.Sesi || p['Sesi Piket'] || 'Semua Sesi';
+            return `<div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-brand-600"></span><strong>${nama}</strong> (${pId}) - <span class="text-gray-500 font-mono text-[10px]">${sesi}</span></div>`;
+          }).join('');
+        }
+      }
+
+      renderInvalTasks(isMePiket);
+    }
+
+    function renderInvalTasks(isMePiket) {
+      const container = document.getElementById('invalTasksContainer');
+      const todayYmd = normalizeDateStr(new Date());
+
+      // Tampilkan semua permohonan izin yang butuh inval (Status 'Pending') atau izin hari ini
+      const relevantIzin = liveData.izinTugas.filter(i => {
+        const itemYmd = normalizeDateStr(i.Tanggal);
+        const isPending = (i.Status === 'Pending');
+        const isToday = (itemYmd === todayYmd);
+        return isPending || isToday;
+      });
+
+      if (relevantIzin.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center bg-white rounded-3xl border border-gray-100 text-gray-400">
+            <i data-lucide="check-circle-2" class="w-7 h-7 mx-auto mb-1 text-emerald-500 opacity-60"></i>
+            <p class="font-bold text-xs text-gray-700">Semua Guru Hadir</p>
+            <p class="text-[11px] mt-0.5">Tidak ada laporan guru izin atau sakit hari ini.</p>
+          </div>
+        `;
+        safeCreateIcons();
+        return;
+      }
+
+      const role = String(currentUser?.Role || '').toLowerCase().trim();
+      const isAuthorizedPiket = isMePiket || role === 'admin' || role === 'superadmin';
+
+      container.innerHTML = relevantIzin.map(item => {
+        const guru = liveData.users.find(u => String(u.PegID).toUpperCase() === String(item.PegIDGuru).toUpperCase());
+        const namaGuru = guru ? guru.Nama : item.PegIDGuru;
+        const isPending = (item.Status === 'Pending');
+        const isClaimed = (item.Status === 'Diklaim');
+        const isDone = (item.Status === 'Selesai');
+
+        const alasanText = item.Alasan || item.Alasa || item.alasan || item.alasa || 'Izin';
+        const displayDate = formatDisplayDate(item.Tanggal);
+        const isClaimedByMe = currentUser && (String(item.ClaimedByPegID || '').toUpperCase().trim() === String(currentUser.PegID).toUpperCase().trim());
+
+        let statusBadge = `<span class="px-2.5 py-0.5 bg-amber-50 text-amber-700 font-bold rounded-md text-[10px] border border-amber-200">Pending (Belum Diinval)</span>`;
+        if (isClaimed) statusBadge = `<span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 font-bold rounded-md text-[10px] border border-blue-200">Diklaim (${item.ClaimedByPegID || 'Piket'})</span>`;
+        if (isDone) statusBadge = `<span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 font-bold rounded-md text-[10px] border border-emerald-200">Selesai Didampingi</span>`;
+
+        return `
+          <div class="p-4 rounded-2xl bg-white border ${isPending ? 'border-amber-300 shadow-xs' : 'border-gray-100'} space-y-2.5 text-xs">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="font-black text-sm text-gray-900">${item.Kelas} • ${item.Mapel}</span>
+                <p class="text-[10px] text-gray-400 font-mono mt-0.5">Tgl: ${displayDate} • Sesi: ${item.Sesi}</p>
+              </div>
+              ${statusBadge}
+            </div>
+
+            <div class="space-y-1 text-[11px] text-gray-600 bg-gray-50/70 p-3 rounded-2xl border border-gray-100">
+              <p><strong>Guru Berhalangan:</strong> ${namaGuru} <span class="font-mono text-gray-400">(${item.PegIDGuru})</span></p>
+              <p><strong>Alasan:</strong> <span class="text-amber-800 font-semibold">${alasanText}</span></p>
+              <div class="mt-1 pt-1 border-t border-gray-200/60">
+                <strong class="text-gray-900 block mb-0.5">Tugas untuk Siswa:</strong>
+                <p class="text-gray-700 whitespace-pre-line leading-relaxed">${item.DeskripsiTugas || '(Tidak ada rincian tugas)'}</p>
+              </div>
+              ${item.BuktiInval ? `
+                <div class="mt-1 pt-1 border-t border-gray-200/60 text-emerald-700">
+                  <strong>Laporan Inval:</strong> ${item.BuktiInval}
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+              <span class="text-[10px] text-gray-400 font-mono">ID: ${item.ID || '-'}</span>
+
+              <div class="flex items-center gap-2">
+                ${isPending ? (
+                  isAuthorizedPiket ? `
+                    <button onclick="claimTugasAction('${item.ID}')" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition">
+                      <i data-lucide="hand" class="w-3.5 h-3.5"></i>
+                      <span>Klaim Inval Kelas</span>
+                    </button>
+                  ` : `
+                    <span class="text-[10px] text-amber-700 font-medium italic">Hanya Guru Piket/Admin yang dapat mengklaim</span>
+                  `
+                ) : ''}
+
+                ${isClaimed ? (
+                  (isAuthorizedPiket || isClaimedByMe) ? `
+                    <button onclick="openModalBuktiPiket('${item.ID}', '${item.Kelas} - ${item.Mapel}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition">
+                      <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                      <span>Unggah Bukti & Foto Drive</span>
+                    </button>
+                  ` : `
+                    <span class="text-[10px] text-blue-700 font-medium italic">Didampingi oleh ${item.ClaimedByPegID}</span>
+                  `
+                ) : ''}
+
+                ${isDone && item.FotoDriveUrl ? `
+                  <button onclick="viewFotoDriveModal('${item.FotoDriveUrl}', '${item.BuktiInval || ''}')" class="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold rounded-xl text-[11px] flex items-center gap-1.5 transition">
+                    <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                    <span>Foto Bukti</span>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      safeCreateIcons();
+    }
+
+    function claimTugasAction(id) {
+      showInPageConfirm({
+        title: 'Klaim Inval Kelas',
+        message: 'Apakah Anda yakin ingin mengambil alih pendampingan kelas ini sebagai Guru Piket?',
+        icon: 'hand',
+        confirmText: 'Ya, Klaim',
+        confirmColor: 'brand',
+        onConfirm: async () => {
+          const url = getGasUrl();
+          if (url) {
+            try {
+              await fetchWithTimeout(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'claimTugas', id, claimedByPegID: currentUser.PegID })
+              });
+              await fetchAllDataFromSheets();
+            } catch (e) {
+              console.warn('Gagal POST klaim:', e);
+            }
+          }
+          const item = liveData.izinTugas.find(i => String(i.ID) === String(id));
+          if (item) {
+            item.Status = 'Diklaim';
+            item.ClaimedByPegID = currentUser.PegID;
+          }
+          showFloatingToast('Berhasil', 'Kelas berhasil diklaim untuk inval!', 'success');
+          renderPiketCards();
+        }
+      });
+    }
+
+    // =========================================================================
+    // MODAL & UPLOAD BUKTI INVAL DENGAN FOTO GOOGLE DRIVE (< 300KB)
+    // =========================================================================
+    function openModalBuktiPiket(id, label) {
+      document.getElementById('buktiTargetIzinId').value = id;
+      document.getElementById('buktiTargetLabel').innerText = label;
+      clearFotoInvalSelected();
+      document.getElementById('modalBuktiPiket').classList.remove('hidden');
+      document.getElementById('modalBuktiPiket').classList.add('flex');
+    }
+    function closeModalBuktiPiket() {
+      document.getElementById('modalBuktiPiket').classList.add('hidden');
+      document.getElementById('modalBuktiPiket').classList.remove('flex');
+    }
+
+    function handleFotoInvalSelected(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          const MAX_SIZE = 1024;
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          compressedFotoBase64 = dataUrl;
+          compressedFotoName = file.name || 'bukti_inval.jpg';
+
+          const stringLength = dataUrl.length - 'data:image/jpeg;base64,'.length;
+          const sizeInBytes = 4 * Math.ceil(stringLength / 3) * 0.5624896334383812;
+          const sizeInKb = Math.round(sizeInBytes / 1000);
+
+          document.getElementById('fotoPreviewThumb').src = dataUrl;
+          document.getElementById('fotoPreviewInfo').innerText = compressedFotoName;
+          document.getElementById('fotoPreviewSizeInfo').innerText = `Terkonversi: ${sizeInKb} KB (Maks 300 KB)`;
+          document.getElementById('fotoPreviewContainer').classList.remove('hidden');
+          safeCreateIcons();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearFotoInvalSelected() {
+      compressedFotoBase64 = null;
+      compressedFotoName = null;
+      document.getElementById('buktiInputFoto').value = '';
+      document.getElementById('fotoPreviewContainer').classList.add('hidden');
+    }
+
+    async function submitBuktiInvalAction(e) {
+      e.preventDefault();
+      const id = document.getElementById('buktiTargetIzinId').value;
+      const catatan = document.getElementById('buktiInputCatatan').value.trim();
+      const btn = document.getElementById('btnSubmitBuktiInval');
+      const url = getGasUrl();
+
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Mengunggah ke Drive...</span>`;
+      safeCreateIcons();
+
+      const payload = {
+        action: 'submitBuktiInval',
+        id: id,
+        catatan: catatan,
+        buktiInval: catatan,
+        fileBase64: compressedFotoBase64 || '',
+        fileName: compressedFotoName || ('Inval_' + id + '.jpg'),
+        mimeType: 'image/jpeg'
+      };
+
+      if (url) {
+        try {
+          const resp = await fetchWithTimeout(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          });
+          const res = await resp.json();
+          if (res.success) {
+            showFloatingToast('Tersimpan', res.message || 'Bukti inval tersimpan dan foto terunggah ke Google Drive!', 'success');
+            closeModalBuktiPiket();
+            document.getElementById('formBuktiInvalModal').reset();
+            clearFotoInvalSelected();
+            await fetchAllDataFromSheets();
+            return;
+          }
+        } catch (err) {
+          console.warn('Gagal upload GAS:', err);
+        }
+      }
+
+      const item = liveData.izinTugas.find(i => String(i.ID) === String(id));
+      if (item) {
+        item.Status = 'Selesai';
+        item.BuktiInval = catatan;
+        if (compressedFotoBase64) item.FotoDriveUrl = compressedFotoBase64;
+      }
+      showFloatingToast('Tersimpan', 'Bukti pelaksanaan inval tersimpan!', 'success');
+      closeModalBuktiPiket();
+      document.getElementById('formBuktiInvalModal').reset();
+      clearFotoInvalSelected();
+      renderPiketCards();
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="upload-cloud" class="w-4 h-4"></i><span>Simpan & Upload Drive</span>`;
+      safeCreateIcons();
+    }
+
+    function viewFotoDriveModal(driveUrl, catatan) {
+      document.getElementById('viewFotoCatatan').innerText = catatan || 'Laporan pelaksanaan inval.';
+      document.getElementById('viewFotoDriveLink').href = driveUrl;
+      const fileIdMatch = driveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || driveUrl.match(/id=([a-zA-Z0-9_-]+)/);
+      if (fileIdMatch && fileIdMatch[1]) {
+        document.getElementById('viewFotoImage').src = `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=w800`;
+      } else {
+        document.getElementById('viewFotoImage').src = driveUrl;
+      }
+      document.getElementById('modalViewFoto').classList.remove('hidden');
+      document.getElementById('modalViewFoto').classList.add('flex');
+    }
+    function closeModalViewFoto() {
+      document.getElementById('modalViewFoto').classList.add('hidden');
+      document.getElementById('modalViewFoto').classList.remove('flex');
+    }
+
+    // =========================================================================
+    // FORM IZIN & PENUGASAN GURU BERHALANGAN
+    // =========================================================================
+    async function handleKirimIzin(e) {
+      e.preventDefault();
+      const tanggal = document.getElementById('inputIzinTanggal').value;
+      const alasan = document.getElementById('inputIzinAlasan').value;
+      const kelas = document.getElementById('inputIzinKelas').value;
+      const sesi = document.getElementById('inputIzinSesi').value;
+      const mapel = document.getElementById('inputIzinMapel').value;
+      const deskripsi = document.getElementById('inputIzinDeskripsi').value.trim();
+      const btn = document.getElementById('btnKirimIzin');
+
+      if (!kelas) return showFloatingToast('Validasi', 'Silakan pilih kelas yang ditinggalkan!', 'error');
+      if (!mapel) return showFloatingToast('Validasi', 'Silakan pilih mata pelajaran!', 'error');
+
+      const url = getGasUrl();
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader" class="w-4 h-4 animate-spin"></i><span>Menyimpan...</span>`;
+      safeCreateIcons();
+
+      const payload = {
+        action: 'addIzin',
+        tanggal: tanggal,
+        alasan: alasan,
+        kelas: kelas,
+        sesi: sesi,
+        mapel: mapel,
+        deskripsiTugas: deskripsi,
+        pegidGuru: currentUser.PegID
+      };
+
+      if (url) {
+        try {
+          const resp = await fetchWithTimeout(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+          });
+          const res = await resp.json();
+          if (res.success) {
+            showFloatingToast('Tersimpan', 'Permohonan izin dan tugas berhasil disimpan di database!', 'success');
+            document.getElementById('formIzinTeachOps').reset();
+            document.getElementById('inputIzinTanggal').value = new Date().toISOString().split('T')[0];
+            await fetchAllDataFromSheets();
+            renderRiwayatIzin();
+            return;
+          }
+        } catch (err) {
+          console.warn('Gagal POST izin:', err);
+        }
+      }
+
+      payload.ID = 'IZN-' + Date.now().toString().slice(-4);
+      payload.Status = 'Pending';
+      liveData.izinTugas.push(payload);
+      showFloatingToast('Tersimpan', 'Permohonan izin dan tugas berhasil disimpan!', 'success');
+      document.getElementById('formIzinTeachOps').reset();
+      document.getElementById('inputIzinTanggal').value = new Date().toISOString().split('T')[0];
+      renderRiwayatIzin();
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i><span>Kirim Izin</span>`;
+      safeCreateIcons();
+    }
+
+    function renderRiwayatIzin() {
+      if (!currentUser) return;
+      const cleanMyPegid = String(currentUser.PegID).toUpperCase().trim();
+      const saya = liveData.izinTugas.filter(i => String(i.PegIDGuru).toUpperCase().trim() === cleanMyPegid);
+      const box = document.getElementById('riwayatIzinContainer');
+
+      if (saya.length === 0) {
+        box.innerHTML = `<p class="text-gray-400 italic text-center py-2">Belum ada riwayat izin Anda di database.</p>`;
+        return;
+      }
+
+      box.innerHTML = saya.map(i => {
+        const displayDate = formatDisplayDate(i.Tanggal);
+        const alasanText = i.Alasan || i.Alasa || i.alasan || 'Izin';
+        return `
+          <div class="p-3 bg-white rounded-2xl border border-gray-100 flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold text-gray-900">${displayDate} • ${i.Kelas}</span>
+              <p class="text-gray-500 text-[11px]">${i.Mapel} (${alasanText}) • ${i.Sesi}</p>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${i.Status === 'Selesai' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">
+              ${i.Status}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // =========================================================================
+    // EXECUTIVE MONITORING (KEPALA SEKOLAH, ADMIN & SUPERADMIN)
+    // =========================================================================
+    function renderMonitoringScreen() {
+      document.getElementById('monStatIzin').innerText = liveData.izinTugas.length;
+      document.getElementById('monStatPending').innerText = liveData.izinTugas.filter(i => i.Status === 'Pending').length;
+      document.getElementById('monStatInval').innerText = `${liveData.izinTugas.filter(i => i.Status === 'Selesai').length} Kelas`;
+
+      const logContainer = document.getElementById('monLogContainer');
+      if (liveData.izinTugas.length === 0) {
+        logContainer.innerHTML = `<p class="text-gray-400 italic text-center py-4">Belum ada catatan izin atau inval di database MTs SAHID.</p>`;
+        return;
+      }
+
+      logContainer.innerHTML = liveData.izinTugas.map(item => {
+        const guru = liveData.users.find(u => String(u.PegID).toUpperCase() === String(item.PegIDGuru).toUpperCase());
+        const namaGuru = guru ? guru.Nama : item.PegIDGuru;
+        const piket = liveData.users.find(u => String(u.PegID).toUpperCase() === String(item.ClaimedByPegID).toUpperCase());
+        const namaPiket = piket ? piket.Nama : (item.ClaimedByPegID || '-');
+
+        const alasanText = item.Alasan || item.Alasa || item.alasan || item.alasa || 'Izin';
+        const displayDate = formatDisplayDate(item.Tanggal);
+        const hasFoto = item.FotoDriveUrl && !item.FotoDriveUrl.startsWith('Err');
+
+        return `
+          <div class="p-3.5 bg-white rounded-2xl border border-gray-100 shadow-xs space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-gray-900">${displayDate} • ${namaGuru}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${item.Status === 'Selesai' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                ${item.Status}
+              </span>
+            </div>
+
+            <div class="text-[11px] text-gray-600 space-y-0.5">
+              <p><strong>${item.Kelas}</strong> • <span class="text-amber-800 font-semibold">${alasanText}</span> • Sesi: ${item.Sesi}</p>
+              <p><strong>Tugas:</strong> ${item.DeskripsiTugas}</p>
+              ${item.Status !== 'Pending' ? `<p class="text-blue-700"><strong>Guru Piket Inval:</strong> ${namaPiket} (${item.ClaimedByPegID})</p>` : ''}
+              ${item.BuktiInval ? `<p class="text-emerald-700"><strong>Laporan Inval:</strong> ${item.BuktiInval}</p>` : ''}
+            </div>
+
+            ${hasFoto ? `
+              <div class="pt-2 border-t border-gray-100 flex items-center justify-end">
+                <button onclick="viewFotoDriveModal('${item.FotoDriveUrl}', '${item.BuktiInval || ''}')" class="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold rounded-xl text-[11px] flex items-center gap-1.5 transition">
+                  <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                  <span>Lihat Foto Bukti Drive</span>
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      safeCreateIcons();
+    }
+
+    // =========================================================================
+    // MODAL MASTER DATA (GURU, KELAS, MAPEL, PENGATURAN SEKOLAH)
+    // =========================================================================
+    function openMasterModal(category) {
+      const modal = document.getElementById('modalMaster');
+      const title = document.getElementById('modalMasterTitle');
+      const body = document.getElementById('modalMasterBody');
+      const role = String(currentUser?.Role || '').toLowerCase();
+      const isSuperadmin = (role === 'superadmin');
+
+      if (category === 'guru') {
+        title.innerHTML = `<i data-lucide="users" class="w-5 h-5 text-teal-600"></i><span>Master Data Guru & Pegawai</span>`;
+        let html = `
+          ${isSuperadmin ? `
+            <div class="p-3 bg-teal-50 border border-teal-200 rounded-2xl mb-3 space-y-2">
+              <h5 class="font-bold text-teal-900">Tambah Guru / User Baru</h5>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <input type="text" id="addGuruPegid" placeholder="PegID (Contoh: 1234567)" class="border p-2 rounded-xl uppercase font-mono">
+                <input type="text" id="addGuruNama" placeholder="Nama Lengkap Guru" class="border p-2 rounded-xl">
+                <input type="text" id="addGuruJabatan" placeholder="Jabatan (cth: Waka Kurikulum / Guru)" class="border p-2 rounded-xl">
+                <select id="addGuruRole" class="border p-2 rounded-xl bg-white">
+                  <option value="guru">Guru</option>
+                  <option value="admin">Admin</option>
+                  <option value="kepala">Kepala Sekolah</option>
+                  <option value="superadmin">Superadmin</option>
+                </select>
+                <input type="password" id="addGuruPass" placeholder="Password (default 123456)" class="border p-2 rounded-xl sm:col-span-2">
+              </div>
+              <button onclick="saveNewUserToSheet()" id="btnSaveUser" class="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs">
+                Simpan Guru Baru
+              </button>
+            </div>
+          ` : `
+            <div class="p-2.5 bg-gray-50 rounded-xl text-gray-500 mb-3 text-[11px]">
+              <i data-lucide="lock" class="w-3.5 h-3.5 inline mr-1"></i> Penambahan user baru hanya dapat dilakukan oleh <strong>Superadmin</strong>.
+            </div>
+          `}
+          <div class="space-y-2">
+            ${liveData.users.length === 0 ? '<p class="text-gray-400 italic text-center py-3">Belum ada user di database.</p>' : liveData.users.map(u => `
+              <div class="p-2.5 border rounded-xl flex items-center justify-between text-xs">
+                <div>
+                  <strong class="text-gray-900">${u.Nama}</strong>
+                  <p class="text-gray-500 text-[11px] font-mono">${u.PegID} • Role: ${u.Role} (${u.Jabatan || '-'})</p>
+                </div>
+                ${isSuperadmin && u.PegID !== currentUser.PegID ? `
+                  <button onclick="deleteUserFromSheet('${u.PegID}')" class="text-red-400 hover:text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+        body.innerHTML = html;
+
+      } else if (category === 'kelas') {
+        title.innerHTML = `<i data-lucide="layout-grid" class="w-5 h-5 text-indigo-600"></i><span>Master Data Kelas</span>`;
+        
+        const teacherOptions = liveData.users.length > 0 
+          ? liveData.users.map(u => `<option value="${u.Nama} (${u.PegID})">${u.Nama} [${u.PegID}]</option>`).join('')
+          : `<option value="">(Belum ada guru - Input di Data Guru dahulu)</option>`;
+
+        // Filter kelas yang valid (punya NamaKelas)
+        const validKelas = liveData.kelas.filter(k => {
+          const nama = k.NamaKelas || k.namaKelas || k.Kelas || k.nama;
+          return Boolean(nama && String(nama).trim() !== '');
+        });
+
+        let html = `
+          ${isSuperadmin ? `
+            <div class="p-3 bg-indigo-50 border border-indigo-200 rounded-2xl mb-3 space-y-2">
+              <h5 class="font-bold text-indigo-900">Tambah Kelas Baru (Superadmin)</h5>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <input type="text" id="addKelasNama" placeholder="Nama Kelas (Contoh: VII A / VIII B)" class="border p-2 rounded-xl">
+                <select id="addKelasTingkat" class="border p-2 rounded-xl bg-white">
+                  <option value="Kelas 7">Kelas 7</option>
+                  <option value="Kelas 8">Kelas 8</option>
+                  <option value="Kelas 9">Kelas 9</option>
+                  <option value="Umum">Umum</option>
+                </select>
+                <div class="col-span-2">
+                  <label class="block font-bold text-gray-700 text-[11px] mb-0.5">Pilih Wali Kelas (Ditarik dari Data Guru):</label>
+                  <select id="addKelasWaliSelect" class="w-full border p-2 rounded-xl bg-white">
+                    <option value="">-- Pilih Wali Kelas --</option>
+                    ${teacherOptions}
+                  </select>
+                </div>
+              </div>
+              <button onclick="saveNewKelasToSheet()" id="btnSaveKelas" class="mt-2 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs">
+                Simpan Kelas ke Database
+              </button>
+            </div>
+          ` : `
+            <div class="p-2.5 bg-gray-50 rounded-xl text-gray-500 mb-3 text-[11px]">
+              <i data-lucide="lock" class="w-3.5 h-3.5 inline mr-1"></i> Penambahan kelas dikelola oleh <strong>Superadmin</strong>.
+            </div>
+          `}
+          <div class="space-y-2">
+            ${validKelas.length === 0 ? '<p class="text-gray-400 italic text-center py-3">Belum ada kelas terdaftar di database.</p>' : validKelas.map((k, idx) => {
+              const nama = k.NamaKelas || k.namaKelas || k.Kelas || k.nama;
+              const tingkat = k.Tingkat || k.tingkat || '';
+              const wali = k.WaliKelas || k.waliKelas || k.Wali || '-';
+              return `
+                <div class="p-2.5 border rounded-xl flex items-center justify-between text-xs bg-white">
+                  <div>
+                    <strong class="text-gray-900">${nama}</strong> ${tingkat ? '(' + tingkat + ')' : ''}
+                    <p class="text-gray-500 text-[11px]">Wali: ${wali}</p>
+                  </div>
+                  ${isSuperadmin ? `<button onclick="deleteRowFromSheet('Kelas', ${idx})" class="text-red-400 hover:text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+        body.innerHTML = html;
+
+      } else if (category === 'mapel') {
+        title.innerHTML = `<i data-lucide="bookmark" class="w-5 h-5 text-rose-600"></i><span>Master Mata Pelajaran</span>`;
+        let html = `
+          ${isSuperadmin ? `
+            <div class="p-3 bg-rose-50 border border-rose-200 rounded-2xl mb-3 space-y-2">
+              <h5 class="font-bold text-rose-900">Tambah Mata Pelajaran Baru</h5>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <input type="text" id="addMapelNama" placeholder="Nama Mapel (Contoh: Aqidah Akhlak)" class="border p-2 rounded-xl">
+                <input type="text" id="addMapelKategori" placeholder="Kategori (PAI / Umum)" class="border p-2 rounded-xl">
+              </div>
+              <button onclick="saveNewMapelToSheet()" id="btnSaveMapel" class="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs">
+                Simpan Mata Pelajaran
+              </button>
+            </div>
+          ` : `
+            <div class="p-2.5 bg-gray-50 rounded-xl text-gray-500 mb-3 text-[11px]">
+              <i data-lucide="lock" class="w-3.5 h-3.5 inline mr-1"></i> Penambahan mapel dikelola oleh <strong>Superadmin</strong>.
+            </div>
+          `}
+          <div class="space-y-2">
+            ${liveData.mapel.length === 0 ? '<p class="text-gray-400 italic text-center py-3">Belum ada mapel di database.</p>' : liveData.mapel.map((m, idx) => `
+              <div class="p-2.5 border rounded-xl flex items-center justify-between text-xs bg-white">
+                <div>
+                  <strong class="text-gray-900">${m.NamaMapel}</strong>
+                  <p class="text-gray-500 text-[11px]">Kategori: ${m.Kategori || 'Umum'}</p>
+                </div>
+                ${isSuperadmin ? `<button onclick="deleteRowFromSheet('Mapel', ${idx})" class="text-red-400 hover:text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+        body.innerHTML = html;
+
+      } else if (category === 'sekolah') {
+        // HANYA SUPERADMIN YANG DAPAT MELIHAT & MENGUBAH URL GAS
+        title.innerHTML = `<i data-lucide="settings" class="w-5 h-5 text-gray-700"></i><span>Pengaturan Sistem MTs SAHID</span>`;
+        const sek = liveData.sekolah || {};
+        const gasUrl = getGasUrl();
+
+        let html = `
+          <div class="space-y-3">
+            <form onsubmit="saveDataSekolahToSheet(event)" class="space-y-3 p-3 bg-gray-50 rounded-2xl border border-gray-200">
+              <h5 class="font-bold text-gray-900 flex items-center gap-1.5">
+                <i data-lucide="school" class="w-4 h-4 text-brand-600"></i>
+                <span>Profil Database Sekolah (Sheet Sekolah)</span>
+              </h5>
+              <div>
+                <label class="block font-bold text-gray-700 mb-0.5">Nama Sekolah</label>
+                <input type="text" id="setNamaSekolah" value="${sek.NamaSekolah || 'MTs SAHID'}" required class="w-full border p-2 rounded-xl">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-bold text-gray-700 mb-0.5">NPSN</label>
+                  <input type="text" id="setNpsn" value="${sek.NPSN || '20277594'}" class="w-full border p-2 rounded-xl font-mono">
+                </div>
+                <div>
+                  <label class="block font-bold text-gray-700 mb-0.5">Semester Aktif</label>
+                  <input type="text" id="setSemester" value="${sek.Semester || 'Ganjil 2026/2027'}" class="w-full border p-2 rounded-xl">
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold text-gray-700 mb-0.5">Kepala Sekolah</label>
+                <input type="text" id="setKepsek" value="${sek.KepalaSekolah || 'R. Jaja Jumhana, S.Pd'}" class="w-full border p-2 rounded-xl">
+              </div>
+              <div>
+                <label class="block font-bold text-gray-700 mb-0.5">Alamat Sekolah</label>
+                <input type="text" id="setAlamat" value="${sek.Alamat || 'Jl. Kh Abdul Hamid Km 6'}" class="w-full border p-2 rounded-xl">
+              </div>
+
+              <!-- PENGATURAN URL GAS KHUSUS SUPERADMIN -->
+              <div class="p-3 bg-brand-50 border border-brand-200 rounded-xl space-y-1">
+                <label class="block font-bold text-brand-900 text-xs">URL Web App Google Apps Script (/exec)</label>
+                <p class="text-[10px] text-brand-700">Tautan deployment Google Apps Script spreadsheet MTs SAHID Anda (Hanya dapat diatur oleh Superadmin):</p>
+                <input type="url" id="setGasUrl" value="${gasUrl}" required class="w-full border border-brand-300 p-2 rounded-xl font-mono text-[11px] bg-white" placeholder="https://script.google.com/macros/s/.../exec">
+              </div>
+
+              <button type="submit" id="btnSaveSekolah" class="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow-xs">
+                Simpan Profil & Perbarui Koneksi GAS
+              </button>
+            </form>
+          </div>
+        `;
+        body.innerHTML = html;
+
+      } else if (category === 'sesi') {
+        // PENGATURAN WAKTU SESI MENGAJAR & ISTIRAHAT (TERHUBUNG REALTIME)
+        title.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-teal-600"></i><span>Pengaturan Waktu Sesi MTs SAHID</span>`;
+        const reguler = getMasterSesi('Senin');
+        const jumat = getMasterSesi('Jumat');
+        
+        let html = `
+          <div class="space-y-4">
+            <div class="p-3 bg-teal-50 rounded-2xl border border-teal-200 text-xs space-y-1">
+              <div class="flex items-center gap-1.5 font-bold text-teal-900">
+                <i data-lucide="info" class="w-4 h-4 text-teal-700"></i>
+                <span>Standar Sesi MTs SAHID Terhubung Real-Time</span>
+              </div>
+              <p class="text-teal-700 text-[11px] leading-relaxed">
+                Pengaturan ini mengatur jam sesi mengajar, durasi istirahat, dan jadwal piket guru. Perubahan tersimpan dan terhubung langsung antara aplikasi Android dan Web.
+              </p>
+            </div>
+
+            <!-- Tab Sesi Reguler (Senin - Kamis & Sabtu) -->
+            <div class="space-y-2 p-3 bg-gray-50 rounded-2xl border border-gray-200">
+              <div class="flex items-center justify-between">
+                <h5 class="font-extrabold text-xs text-gray-900 flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-brand-600"></span>
+                  <span>Senin – Kamis & Sabtu (08.30 - 15.00)</span>
+                </h5>
+                <span class="text-[10px] text-gray-500 font-bold">4 Sesi + 2 Istirahat</span>
+              </div>
+
+              <div class="space-y-1.5 pt-1">
+                ${reguler.map((s, idx) => `
+                  <div class="p-2 bg-white rounded-xl border border-gray-200 flex items-center justify-between text-xs">
+                    <span class="font-bold ${s.isBreak ? 'text-amber-700 flex items-center gap-1' : 'text-gray-800'}">
+                      ${s.isBreak ? '<i data-lucide="coffee" class="w-3.5 h-3.5 inline"></i>' : ''} ${s.id}
+                    </span>
+                    <input type="text" id="reguler_jam_${idx}" value="${s.jam}" ${isSuperadmin ? '' : 'readonly'} 
+                      class="border border-gray-300 rounded-lg px-2.5 py-1 text-xs font-mono w-36 text-center bg-gray-50 focus:bg-white focus:ring-1 focus:ring-brand-500">
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Tab Sesi Khusus Jumat -->
+            <div class="space-y-2 p-3 bg-emerald-50/60 rounded-2xl border border-emerald-200">
+              <div class="flex items-center justify-between">
+                <h5 class="font-extrabold text-xs text-gray-900 flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                  <span>Khusus Hari Jumat (08.00 - 15.00)</span>
+                </h5>
+                <span class="text-[10px] text-emerald-800 font-bold">4 Sesi + Istirahat Shalat</span>
+              </div>
+
+              <div class="space-y-1.5 pt-1">
+                ${jumat.map((s, idx) => `
+                  <div class="p-2 bg-white rounded-xl border border-emerald-100 flex items-center justify-between text-xs">
+                    <span class="font-bold ${s.isBreak ? 'text-amber-700 flex items-center gap-1' : 'text-gray-800'}">
+                      ${s.isBreak ? '<i data-lucide="coffee" class="w-3.5 h-3.5 inline"></i>' : ''} ${s.id}
+                    </span>
+                    <input type="text" id="jumat_jam_${idx}" value="${s.jam}" ${isSuperadmin ? '' : 'readonly'} 
+                      class="border border-emerald-300 rounded-lg px-2.5 py-1 text-xs font-mono w-36 text-center bg-gray-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            ${isSuperadmin ? `
+              <button onclick="saveCustomSesiHours()" id="btnSaveSesi" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                <span>Simpan & Terapkan Waktu Sesi</span>
+              </button>
+            ` : `
+              <div class="p-2.5 bg-gray-100 rounded-xl text-gray-500 text-[11px] text-center">
+                <i data-lucide="lock" class="w-3.5 h-3.5 inline mr-1"></i> Perubahan konfigurasi waktu sesi hanya dapat disimpan oleh <strong>Superadmin</strong>.
+              </div>
+            `}
+          </div>
+        `;
+        body.innerHTML = html;
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      safeCreateIcons();
+    }
+
+    function closeMasterModal() {
+      document.getElementById('modalMaster').classList.add('hidden');
+      document.getElementById('modalMaster').classList.remove('flex');
+    }
+
+    // Simpan Waktu Sesi Baru (Superadmin)
+    async function saveCustomSesiHours() {
+      const reguler = getMasterSesi('Senin');
+      const jumat = getMasterSesi('Jumat');
+
+      reguler.forEach((s, idx) => {
+        const input = document.getElementById(`reguler_jam_${idx}`);
+        if (input && input.value.trim()) {
+          s.jam = input.value.trim();
+        }
+      });
+
+      jumat.forEach((s, idx) => {
+        const input = document.getElementById(`jumat_jam_${idx}`);
+        if (input && input.value.trim()) {
+          s.jam = input.value.trim();
+        }
+      });
+
+      showFloatingToast('Berhasil', 'Waktu sesi mengajar berhasil disimpan & diterapkan!', 'success');
+      renderDashboardOverview();
+      renderJadwalScreen(currentJadwalFilterDay);
+      closeMasterModal();
+    }
+
+    // Master User CRUD
+    async function saveNewUserToSheet() {
+      const pegid = document.getElementById('addGuruPegid').value.trim().toUpperCase();
+      const nama = document.getElementById('addGuruNama').value.trim();
+      const jabatan = (document.getElementById('addGuruJabatan') ? document.getElementById('addGuruJabatan').value.trim() : '') || 'Guru';
+      const role = document.getElementById('addGuruRole').value;
+      const pass = document.getElementById('addGuruPass').value.trim() || '123456';
+      const btn = document.getElementById('btnSaveUser');
+
+      if (!pegid || !nama) return showFloatingToast('Validasi', 'PegID dan Nama wajib diisi!', 'error');
+      const url = getGasUrl();
+
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+
+      const payload = { PegID: pegid, Nama: nama, Role: role, Jabatan: jabatan, Pass: pass };
+
+      if (url) {
+        try {
+          const resp = await fetchWithTimeout(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'saveUser', user: payload })
+          });
+          const res = await resp.json();
+          if (res.success) {
+            showFloatingToast('Tersimpan', `Pegawai ${nama} (${pegid}) tersimpan di database!`, 'success');
+            await fetchAllDataFromSheets();
+            openMasterModal('guru');
+            return;
+          }
+        } catch (e) {
+          console.warn('Gagal POST user:', e);
+        }
+      }
+
+      liveData.users.push(payload);
+      showFloatingToast('Tersimpan', `Pegawai ${nama} (${pegid}) tersimpan!`, 'success');
+      openMasterModal('guru');
+      btn.disabled = false;
+      btn.innerText = 'Simpan Guru Baru';
+    }
+
+    function deleteUserFromSheet(pegid) {
+      showInPageConfirm({
+        title: 'Hapus Pegawai',
+        message: `Apakah Anda yakin ingin menghapus user dengan PegID ${pegid}?`,
+        icon: 'trash-2',
+        confirmText: 'Ya, Hapus',
+        confirmColor: 'red',
+        onConfirm: async () => {
+          const url = getGasUrl();
+          if (url) {
+            try {
+              await fetchWithTimeout(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'deleteUser', pegid })
+              });
+              await fetchAllDataFromSheets();
+            } catch (e) {
+              console.warn('Gagal hapus user di GAS:', e);
+            }
+          }
+          liveData.users = liveData.users.filter(u => u.PegID !== pegid);
+          showFloatingToast('Dihapus', `Pegawai ${pegid} dihapus.`, 'info');
+          openMasterModal('guru');
+        }
+      });
+    }
+
+    // Master Kelas CRUD - FIX MENYIMPAN KE DATABASE & DISPLAY
+    async function saveNewKelasToSheet() {
+      const nama = document.getElementById('addKelasNama').value.trim();
+      const tingkat = document.getElementById('addKelasTingkat').value;
+      const wali = document.getElementById('addKelasWaliSelect').value.trim();
+      const btn = document.getElementById('btnSaveKelas');
+
+      if (!nama) return showFloatingToast('Validasi', 'Nama kelas wajib diisi!', 'error');
+      const url = getGasUrl();
+
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan ke Database...';
+
+      const payload = { 
+        IDKelas: 'KLS-' + Date.now().toString().slice(-4),
+        NamaKelas: nama, 
+        Tingkat: tingkat, 
+        WaliKelas: wali || '-' 
+      };
+
+      if (url) {
+        try {
+          const resp = await fetchWithTimeout(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'saveKelas', kelas: payload })
+          });
+          const res = await resp.json();
+          if (res && res.success) {
+            showFloatingToast('Tersimpan', `Kelas ${nama} berhasil disimpan ke database!`, 'success');
+            await fetchAllDataFromSheets();
+            openMasterModal('kelas');
+            return;
+          }
+        } catch (e) {
+          console.warn('Gagal simpan kelas ke GAS:', e);
+        }
+      }
+
+      liveData.kelas.push(payload);
+      showFloatingToast('Tersimpan', `Kelas ${nama} berhasil disimpan!`, 'success');
+      openMasterModal('kelas');
+      btn.disabled = false;
+      btn.innerText = 'Simpan Kelas ke Database';
+    }
+
+    // Master Mapel CRUD
+    async function saveNewMapelToSheet() {
+      const nama = document.getElementById('addMapelNama').value.trim();
+      const kat = document.getElementById('addMapelKategori').value.trim();
+      const btn = document.getElementById('btnSaveMapel');
+
+      if (!nama) return showFloatingToast('Validasi', 'Nama mapel wajib diisi!', 'error');
+      const url = getGasUrl();
+
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+
+      const payload = { IDMapel: 'MP-' + Date.now().toString().slice(-3), NamaMapel: nama, Kategori: kat || 'Umum' };
+
+      if (url) {
+        try {
+          const resp = await fetchWithTimeout(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'saveMapel', mapel: payload })
+          });
+          const res = await resp.json();
+          if (res.success) {
+            showFloatingToast('Tersimpan', `Mata pelajaran ${nama} berhasil disimpan!`, 'success');
+            await fetchAllDataFromSheets();
+            openMasterModal('mapel');
+            return;
+          }
+        } catch (e) {
+          console.warn('Gagal simpan mapel ke GAS:', e);
+        }
+      }
+
+      liveData.mapel.push(payload);
+      showFloatingToast('Tersimpan', `Mata pelajaran ${nama} berhasil disimpan!`, 'success');
+      openMasterModal('mapel');
+      btn.disabled = false;
+      btn.innerText = 'Simpan Mata Pelajaran';
+    }
+
+    function deleteRowFromSheet(sheetType, index) {
+      showInPageConfirm({
+        title: `Hapus ${sheetType}`,
+        message: `Apakah Anda yakin ingin menghapus baris ini dari sheet ${sheetType}?`,
+        icon: 'trash-2',
+        confirmText: 'Ya, Hapus',
+        confirmColor: 'red',
+        onConfirm: async () => {
+          const url = getGasUrl();
+          if (url) {
+            try {
+              await fetchWithTimeout(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'delete' + sheetType, index })
+              });
+              await fetchAllDataFromSheets();
+            } catch (e) {
+              console.warn('Gagal hapus baris di GAS:', e);
+            }
+          }
+          if (sheetType === 'Kelas') liveData.kelas.splice(index, 1);
+          if (sheetType === 'Mapel') liveData.mapel.splice(index, 1);
+          showFloatingToast('Dihapus', `Data dihapus dari sheet ${sheetType}.`, 'info');
+          openMasterModal(sheetType.toLowerCase());
+        }
+      });
+    }
+
+    // Save Data Profil Sekolah & Update URL GAS (HANYA SUPERADMIN)
+    async function saveDataSekolahToSheet(e) {
+      e.preventDefault();
+      const nama = document.getElementById('setNamaSekolah').value.trim();
+      const npsn = document.getElementById('setNpsn').value.trim();
+      const semester = document.getElementById('setSemester').value.trim();
+      const kepsek = document.getElementById('setKepsek').value.trim();
+      const alamat = document.getElementById('setAlamat').value.trim();
+      const gasUrl = document.getElementById('setGasUrl').value.trim();
+
+      liveData.sekolah = {
+        NamaSekolah: nama,
+        NPSN: npsn,
+        Semester: semester,
+        KepalaSekolah: kepsek,
+        Alamat: alamat
+      };
+
+      setGasUrl(gasUrl);
+      updateSchoolUI();
+
+      if (gasUrl) {
+        try {
+          await fetchWithTimeout(gasUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: 'saveSekolah',
+              sekolah: liveData.sekolah
+            })
+          });
+        } catch (err) {
+          console.warn('Gagal save sekolah ke GAS:', err);
+        }
+      }
+
+      showFloatingToast('Tersimpan', 'Profil MTs SAHID & URL GAS berhasil diperbarui!', 'success');
+      closeMasterModal();
+      await fetchAllDataFromSheets();
+    }
+
+    // =========================================================================
+    // MODAL SIMULASI WAKTU SESI
+    // =========================================================================
+    function openSimulationModal() {
+      const today = getTodayDayName();
+      const list = getMasterSesi(today);
+      const container = document.getElementById('simulasiButtonsContainer');
+      container.innerHTML = list.map(s => `
+        <button onclick="setSimulasiSesi('${s.id}')" class="p-2 text-left rounded-xl border ${simulatedSesiId === s.id ? 'bg-brand-50 border-brand-500 font-bold text-brand-800' : 'bg-gray-50 border-gray-200 text-gray-700'}">
+          <span class="block font-bold">${s.id}</span>
+          <span class="text-[10px] text-gray-500">${s.jam}</span>
+        </button>
+      `).join('') + `
+        <button onclick="setSimulasiSesi('REALTIME')" class="p-2 text-left rounded-xl border ${simulatedSesiId === 'REALTIME' ? 'bg-emerald-50 border-emerald-500 font-bold text-emerald-800' : 'bg-gray-50 border-gray-200 text-gray-700'} col-span-2">
+          <span class="block font-bold">Waktu Real-Time</span>
+          <span class="text-[10px] text-gray-500">Ikuti jam perangkat Anda secara otomatis</span>
+        </button>
+      `;
+
+      document.getElementById('modalSimulasi').classList.remove('hidden');
+      document.getElementById('modalSimulasi').classList.add('flex');
+    }
+
+    function closeSimulationModal() {
+      document.getElementById('modalSimulasi').classList.add('hidden');
+      document.getElementById('modalSimulasi').classList.remove('flex');
+    }
+
+    function setSimulasiSesi(sesiId) {
+      simulatedSesiId = sesiId;
+      closeSimulationModal();
+      const label = document.getElementById('labelSimulasiStatus');
+      if (label) label.innerText = (sesiId === 'REALTIME') ? 'Real-Time' : sesiId;
+      showFloatingToast('Simulasi Waktu', `Sesi aktif dialihkan ke: ${sesiId}`, 'info');
+      renderDashboardOverview();
+      renderJadwalScreen(currentJadwalFilterDay);
+    }
+
+    // =========================================================================
+    // TAB SWITCHER
+    // =========================================================================
+    function switchTab(tabId) {
+      const screens = ['home', 'jadwal', 'piket', 'izin', 'monitoring'];
+      screens.forEach(s => {
+        const scEl = document.getElementById(`screen-${s}`);
+        if (scEl) {
+          scEl.classList.toggle('hidden', s !== tabId);
+        }
+      });
+
+      ['home', 'jadwal', 'piket', 'monitoring'].forEach(b => {
+        const btn = document.getElementById(`bnav-${b}`);
+        if (btn) {
+          const isActive = (b === tabId || (b === 'home' && tabId === 'izin'));
+          btn.className = isActive
+            ? 'bnav-item flex flex-col items-center justify-center text-brand-600 transition'
+            : 'bnav-item flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 transition';
+        }
+      });
+
+      if (tabId === 'home') renderDashboardOverview();
+      if (tabId === 'jadwal') renderJadwalScreen(currentJadwalFilterDay);
+      if (tabId === 'piket') renderPiketCards();
+      if (tabId === 'izin') renderRiwayatIzin();
+      if (tabId === 'monitoring') renderMonitoringScreen();
+
+      safeCreateIcons();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "TeachOps",
+  "description": "TeachOps (Teaching Operations) - Sistem Operasional Guru & Piket Sekolah: Notifikasi Sesi Mengajar, Manajemen Inval, Multi-Role (Guru, Admin, Kepala, Superadmin), dan Integrasi Google Sheets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
